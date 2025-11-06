@@ -7,6 +7,7 @@ import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 import Dashboard from "./pages/Dashboard";
 import Wallet from "./pages/Wallet";
 import InstallToEarn from "./pages/InstallToEarn";
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/" element={<Auth />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/wallet" element={<Wallet />} />
           <Route path="/install" element={<InstallToEarn />} />

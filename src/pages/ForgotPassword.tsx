@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-
 import { useToast } from "@/hooks/use-toast";
+import { authApi } from "@/integration/api";
 
 const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,21 +19,16 @@ const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) throw error;
-
+      const response = await authApi.forgotPassword(email);
       setEmailSent(true);
       toast({
-        title: "Email sent!",
-        description: "Check your email for the password reset link.",
+        title: "Success",
+        description: response.message || "Check your email for the password reset link.",
       });
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to send reset password email",
         variant: "destructive",
       });
     } finally {
@@ -78,7 +73,7 @@ const ForgotPassword = () => {
                 <Button type="submit" className="w-full energy-glow" disabled={isLoading}>
                   {isLoading ? "Sending..." : "Send Reset Link"}
                 </Button>
-                <Link to="/auth">
+                <Link to="/">
                   <Button type="button" variant="ghost" className="w-full">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Login
@@ -91,7 +86,7 @@ const ForgotPassword = () => {
                   We've sent a password reset link to <strong>{email}</strong>. 
                   Please check your email and click the link to reset your password.
                 </p>
-                <Link to="/auth">
+                <Link to="/">
                   <Button variant="outline" className="w-full">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Login

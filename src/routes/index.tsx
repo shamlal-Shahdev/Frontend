@@ -1,12 +1,14 @@
+import { Suspense, lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/layout/Layout';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 // Lazy-loaded route components
-const Auth = React.lazy(() => import('@/pages/Auth'));
-const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
-const Profile = React.lazy(() => import('@/pages/Profile'));
-const NotFound = React.lazy(() => import('@/pages/NotFound'));
+const Auth = lazy(() => import('@/pages/Auth'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
 
 /**
  * Router Configuration
@@ -17,30 +19,63 @@ const NotFound = React.lazy(() => import('@/pages/NotFound'));
  * - Error boundaries
  * - 404 handling
  */
+// Wrap component with Suspense
+const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
+  <Suspense
+    fallback={
+      <div className="flex items-center justify-center h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    }
+  >
+    {children}
+  </Suspense>
+);
+
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
-    errorElement: <NotFound />,
+    errorElement: (
+      <SuspenseWrapper>
+        <NotFound />
+      </SuspenseWrapper>
+    ),
     children: [
       {
         index: true,
-        element: <Auth />,
+        element: (
+          <SuspenseWrapper>
+            <Auth />
+          </SuspenseWrapper>
+        ),
       },
       {
         path: 'auth',
-        element: <Auth />,
+        element: (
+          <SuspenseWrapper>
+            <Auth />
+          </SuspenseWrapper>
+        ),
       },
       {
         element: <ProtectedRoute />,
         children: [
           {
             path: 'dashboard',
-            element: <Dashboard />,
+            element: (
+              <SuspenseWrapper>
+                <Dashboard />
+              </SuspenseWrapper>
+            ),
           },
           {
             path: 'profile',
-            element: <Profile />,
+            element: (
+              <SuspenseWrapper>
+                <Profile />
+              </SuspenseWrapper>
+            ),
           },
         ],
       },
