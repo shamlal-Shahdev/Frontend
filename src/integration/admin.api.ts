@@ -1,60 +1,112 @@
 import { client } from './client';
+import { KycStatus, Document } from './kyc.api';
 
-interface KYCSubmission {
-  id: string;
-  user_id: string;
-  cnic_front_url: string;
-  cnic_back_url: string;
-  utility_bill_url: string;
-  selfie_url: string;
-  status: 'pending' | 'approved' | 'rejected';
-  submitted_at: string;
-  reviewed_at?: string;
-  reviewed_by?: string;
-  rejection_reason?: string;
-  profiles: {
-    email: string;
-    full_name: string;
+// ==================== TYPES ====================
+
+export interface DashboardStats {
+  totalUsers: number;
+  totalKyc: number;
+  stats: {
+    pending: number;
+    in_review: number;
+    approved: number;
+    rejected: number;
   };
 }
 
-interface Installation {
+export interface UserListItem {
   id: string;
-  user_id: string;
-  installation_type: string;
-  capacity_kw: number;
-  inverter_id: string;
-  location: string;
-  status: 'pending' | 'verified' | 'rejected';
-  created_at: string;
-  verification_date?: string;
-  profiles: {
-    email: string;
-    full_name: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isVerified: boolean;
+  kycStatus?: KycStatus;
+  kycSubmissionCount?: number;
+  createdAt: string;
+}
+
+export interface PaginatedUsersResponse {
+  users: UserListItem[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface FilterUsersParams {
+  email?: string;
+  cnicNumber?: string;
+  kycStatus?: KycStatus;
+  page?: number;
+  limit?: number;
+}
+
+export interface UserDetail {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  isVerified: boolean;
+  createdAt: string;
+  kyc?: {
+    id: string;
+    status: KycStatus;
+    city: string;
+    province: string;
+    country: string;
+    gender: string;
+    dateOfBirth: string;
+    cnicNumber: string;
+    rejectionReason?: string;
+    submissionCount: number;
+    reviewedAt?: string;
+    approvedAt?: string;
+    documents: Document[];
+  };
+  auditLogs?: AuditLog[];
+}
+
+export interface AuditLog {
+  action: string;
+  description: string;
+  createdAt: string;
+}
+
+export interface ApproveKycRequest {
+  note?: string;
+}
+
+export interface RejectKycRequest {
+  reason: string;
+}
+
+export interface RequestDocumentsRequest {
+  documentTypes: string[];
+  message: string;
+}
+
+export interface AuditLogsResponse {
+  logs: {
+    id: string;
+    action: string;
+    description: string;
+    createdAt: string;
+  }[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
   };
 }
 
 export const adminApi = {
-  checkAdminRole: async (): Promise<boolean> => {
-    try {
-      const response = await fetch(`${client.API_URL}/admin/check-role`, {
-        headers: {
-          ...client.headers,
-          ...client.getAuthHeader(),
-        },
-      });
-
-      if (!response.ok) return false;
-      
-      const data = await response.json();
-      return data.isAdmin;
-    } catch (error) {
-      return false;
-    }
-  },
-
-  getPendingKYC: async (): Promise<KYCSubmission[]> => {
-    const response = await fetch(`${client.API_URL}/admin/kyc?status=pending`, {
+  // Get dashboard statistics
+  getDashboardStats: async (): Promise<DashboardStats> => {
+    const response = await fetch(`${client.API_URL}/api/v1/admin/dashboard/stats`, {
+      method: 'GET',
       headers: {
         ...client.headers,
         ...client.getAuthHeader(),
@@ -63,14 +115,23 @@ export const adminApi = {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch KYC submissions');
+      throw new Error(error.message || 'Failed to fetch dashboard stats');
     }
 
     return response.json();
   },
 
-  getPendingInstallations: async (): Promise<Installation[]> => {
-    const response = await fetch(`${client.API_URL}/admin/installations?status=pending`, {
+  // Get all users with filters and pagination
+  getUsers: async (params: FilterUsersParams = {}): Promise<PaginatedUsersResponse> => {
+    const queryParams = new URLSearchParams();
+    if (params.email) queryParams.append('email', params.email);
+    if (params.cnicNumber) queryParams.append('cnicNumber', params.cnicNumber);
+    if (params.kycStatus) queryParams.append('kycStatus', params.kycStatus);
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+
+    const response = await fetch(`${client.API_URL}/api/v1/admin/users?${queryParams}`, {
+      method: 'GET',
       headers: {
         ...client.headers,
         ...client.getAuthHeader(),
@@ -79,46 +140,105 @@ export const adminApi = {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch installations');
+      throw new Error(error.message || 'Failed to fetch users');
     }
 
     return response.json();
   },
 
-  reviewKYC: async (submissionId: string, status: 'approved' | 'rejected', rejectionReason?: string) => {
-    const response = await fetch(`${client.API_URL}/admin/kyc/${submissionId}/review`, {
+  // Get specific user details
+  getUserDetails: async (userId: string): Promise<UserDetail> => {
+    const response = await fetch(`${client.API_URL}/api/v1/admin/users/${userId}`, {
+      method: 'GET',
+      headers: {
+        ...client.headers,
+        ...client.getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch user details');
+    }
+
+    return response.json();
+  },
+
+  // Approve KYC submission
+  approveKyc: async (userId: string, data: ApproveKycRequest): Promise<{ success: boolean; message: string }> => {
+    const response = await fetch(`${client.API_URL}/api/v1/admin/kyc/${userId}/approve`, {
+      method: 'PUT',
+      headers: {
+        ...client.headers,
+        ...client.getAuthHeader(),
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to approve KYC');
+    }
+
+    return response.json();
+  },
+
+  // Reject KYC submission
+  rejectKyc: async (userId: string, data: RejectKycRequest): Promise<{ success: boolean; message: string }> => {
+    const response = await fetch(`${client.API_URL}/api/v1/admin/kyc/${userId}/reject`, {
+      method: 'PUT',
+      headers: {
+        ...client.headers,
+        ...client.getAuthHeader(),
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to reject KYC');
+    }
+
+    return response.json();
+  },
+
+  // Request additional documents
+  requestDocuments: async (userId: string, data: RequestDocumentsRequest): Promise<{ success: boolean; message: string }> => {
+    const response = await fetch(`${client.API_URL}/api/v1/admin/kyc/${userId}/request-documents`, {
       method: 'POST',
       headers: {
         ...client.headers,
         ...client.getAuthHeader(),
       },
-      body: JSON.stringify({
-        status,
-        rejectionReason,
-      }),
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to review KYC');
+      throw new Error(error.message || 'Failed to request documents');
     }
 
     return response.json();
   },
 
-  reviewInstallation: async (installationId: string, status: 'verified' | 'rejected') => {
-    const response = await fetch(`${client.API_URL}/admin/installations/${installationId}/review`, {
-      method: 'POST',
+  // Get audit logs with optional filters
+  getAuditLogs: async (params: { userId?: string; page?: number; limit?: number } = {}): Promise<AuditLogsResponse> => {
+    const queryParams = new URLSearchParams();
+    if (params.userId) queryParams.append('userId', params.userId);
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+
+    const response = await fetch(`${client.API_URL}/api/v1/admin/audit-logs?${queryParams}`, {
+      method: 'GET',
       headers: {
         ...client.headers,
         ...client.getAuthHeader(),
       },
-      body: JSON.stringify({ status }),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to review installation');
+      throw new Error(error.message || 'Failed to fetch audit logs');
     }
 
     return response.json();

@@ -106,4 +106,17 @@ All colors MUST be HSL.
   .gradient-text {
     @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
   }
+  
+  /* Hide browser's native password reveal button */
+  input[type="password"]::-webkit-credentials-auto-fill-button,
+  input[type="password"]::-webkit-inner-spin-button,
+  input[type="password"]::-webkit-outer-spin-button {
+    display: none !important;
+    -webkit-appearance: none !important;
+  }
+  
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none !important;
+  }
 }

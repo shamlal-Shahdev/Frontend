@@ -1,10 +1,8 @@
-import { apiClient } from '@/lib/api-client';
-import { API_CONFIG } from '@/config/api.config';
-import type { User, LoginCredentials, RegisterData } from '@/types/auth';
+import { authApi, LoginRequest, RegisterRequest, RegisterWithKycRequest, User } from '@/integration/api';
 
 /**
  * AuthService: Handles all authentication-related API calls
- * This service demonstrates best practices for:
+ * This service provides:
  * - Type safety
  * - Error handling
  * - Token management
@@ -12,7 +10,7 @@ import type { User, LoginCredentials, RegisterData } from '@/types/auth';
  */
 export class AuthService {
   private static instance: AuthService;
-  private tokenKey = 'auth_token';
+  private tokenKey = 'token';
 
   private constructor() {}
 
@@ -26,48 +24,67 @@ export class AuthService {
   /**
    * Authenticate user and store token
    */
-  public async login(credentials: LoginCredentials) {
-    const response = await apiClient.post<{ token: string; user: User }>(
-      API_CONFIG.endpoints.auth.login,
-      credentials
-    );
-
-    if (response.data) {
-      this.setToken(response.data.token);
-      return response.data;
-    }
-
-    throw new Error(response.error);
+  public async login(credentials: LoginRequest) {
+    const response = await authApi.login(credentials);
+    this.setToken(response.token);
+    return response;
   }
 
   /**
-   * Register new user
+   * Register new user (simple registration)
    */
-  public async register(data: RegisterData) {
-    const response = await apiClient.post<{ message: string }>(
-      API_CONFIG.endpoints.auth.register,
-      data
-    );
+  public async register(data: RegisterRequest) {
+    const response = await authApi.register(data);
+    return response;
+  }
 
-    if (response.error) {
-      throw new Error(response.error);
-    }
+  /**
+   * Register with KYC
+   */
+  public async registerWithKyc(data: RegisterWithKycRequest) {
+    const response = await authApi.registerWithKyc(data);
+    return response;
+  }
 
-    return response.data;
+  /**
+   * Verify email with token
+   */
+  public async verifyEmail(token: string) {
+    const response = await authApi.verifyEmail(token);
+    return response;
+  }
+
+  /**
+   * Request password reset
+   */
+  public async forgotPassword(email: string) {
+    const response = await authApi.forgotPassword(email);
+    return response;
+  }
+
+  /**
+   * Reset password with token
+   */
+  public async resetPassword(token: string, newPassword: string) {
+    const response = await authApi.resetPassword(token, newPassword);
+    return response;
   }
 
   /**
    * Get current authenticated user
    */
-  public async getCurrentUser() {
+  public async getCurrentUser(): Promise<User | null> {
     const token = this.getToken();
     if (!token) return null;
 
-    const response = await apiClient.get<User>('/auth/me', {
-      token,
-    });
-
-    return response.data;
+    try {
+      const user = await authApi.getCurrentUser();
+      return user;
+    } catch (error) {
+      // If token is invalid, clear it
+      this.clearToken();
+      return null;
+    }
   }
 
   /**
@@ -83,6 +100,16 @@ export class AuthService {
 
   public clearToken(): void {
     localStorage.removeItem(this.tokenKey);
+  }
+
+  /**
+   * Clear all data from localStorage
+   * Use this when logging out to ensure no user data remains
+   */
+  public clearAllStorage(): void {
+    // Clear all localStorage items
+    // This ensures complete cleanup of user session data
+    localStorage.clear();
   }
 
   public isAuthenticated(): boolean {

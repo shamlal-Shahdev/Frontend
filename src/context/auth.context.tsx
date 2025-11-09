@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, AuthState } from '@/types/auth';
+import { AuthState } from '@/types/auth';
 import { authService } from '@/services/auth.service';
+import { User, LoginRequest, RegisterRequest, RegisterWithKycRequest } from '@/integration/api';
 
 // Create context with initial state
 const initialState: AuthState = {
@@ -10,15 +11,23 @@ const initialState: AuthState = {
   error: null,
 };
 
-const AuthContext = createContext<{
+interface AuthContextValue {
   state: AuthState;
-  login: (email: string, password: string) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
+  registerWithKyc: (data: RegisterWithKycRequest) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   clearError: () => void;
-}>({
+}
+
+const AuthContext = createContext<AuthContextValue>({
   state: initialState,
   login: async () => {},
+  register: async () => {},
+  registerWithKyc: async () => {},
   logout: () => {},
+  refreshUser: async () => {},
   clearError: () => {},
 });
 
@@ -27,7 +36,7 @@ const AuthContext = createContext<{
  * Features:
  * - Automatic token validation
  * - User session persistence
- * - Login/logout functionality
+ * - Login/logout/register functionality
  * - Error handling
  */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -55,9 +64,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (credentials: LoginRequest) => {
     try {
-      const { user } = await authService.login({ email, password });
+      const { user } = await authService.login(credentials);
       setState(prev => ({
         ...prev,
         user,
@@ -73,12 +82,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const register = async (data: RegisterRequest) => {
+    try {
+      await authService.register(data);
+      setState(prev => ({
+        ...prev,
+        error: null,
+      }));
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Registration failed',
+      }));
+      throw error;
+    }
+  };
+
+  const registerWithKyc = async (data: RegisterWithKycRequest) => {
+    try {
+      await authService.registerWithKyc(data);
+      setState(prev => ({
+        ...prev,
+        error: null,
+      }));
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Registration with KYC failed',
+      }));
+      throw error;
+    }
+  };
+
   const logout = () => {
-    authService.clearToken();
+    // Clear all data from localStorage
+    authService.clearAllStorage();
     setState({
       ...initialState,
       isLoading: false,
     });
+  };
+
+  const refreshUser = async () => {
+    await loadUser();
   };
 
   const clearError = () => {
@@ -86,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ state, login, logout, clearError }}>
+    <AuthContext.Provider value={{ state, login, register, registerWithKyc, logout, refreshUser, clearError }}>
       {children}
     </AuthContext.Provider>
   );
