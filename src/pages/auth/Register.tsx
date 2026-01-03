@@ -1,252 +1,282 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { useAuth } from '@/context/auth.context';
+import { authApi } from '@/api/auth.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { toast } from 'sonner';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Zap, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
-interface RegisterFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
-
-export default function Register() {
+export const Register = () => {
   const navigate = useNavigate();
-  const { register: registerUser } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: '',
+  });
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<RegisterFormData>();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    // Validate password match
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
 
-  const password = watch('password');
+    setLoading(true);
 
-  const onSubmit = async (data: RegisterFormData) => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      const { confirmPassword, ...registerData } = data;
-      await registerUser(registerData);
-      
+      // Exclude confirmPassword from the request
+      const { confirmPassword, ...registerData } = formData;
+      await authApi.register(registerData);
       setSuccess(true);
-      toast.success('Registration successful! Please check your email to verify your account.');
-      
-      // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate('/login');
       }, 3000);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Registration failed');
       setLoading(false);
     }
   };
 
   if (success) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-white" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+        <div className="w-full max-w-md">
+          {/* Logo and Branding */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
+                <Zap className="w-8 h-8 text-white" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-center">Registration Successful!</CardTitle>
-            <CardDescription className="text-center">
-              Please check your email for a verification link.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Alert>
-              <AlertDescription>
-                We've sent a verification email to your inbox. Please verify your email address to complete your registration.
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-          <CardFooter>
-            <Button
-              onClick={() => navigate('/login')}
-              className="w-full"
-            >
-              Go to Login
-            </Button>
-          </CardFooter>
-        </Card>
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600 mb-2">
+              WattsUp Energy
+            </h1>
+            <p className="text-xl font-medium text-emerald-600">
+              Power Up. Earn Up.
+            </p>
+          </div>
+
+          {/* Success Card */}
+          <Card className="shadow-xl border-0">
+            <CardContent className="pt-8 pb-6 px-8">
+              <div className="text-center mb-6">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Registration Successful!</h2>
+                <p className="text-gray-600">
+                  Please check your email <span className="font-semibold text-gray-800">{formData.email}</span> for verification.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm text-center">
+                  Redirecting to login page...
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-              W
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8">
+      <div className="w-full max-w-lg">
+        {/* Logo and Branding */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
+              <Zap className="w-8 h-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
-          <CardDescription className="text-center">
-            Join WattsUp Energy today
-          </CardDescription>
-        </CardHeader>
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600 mb-2">
+            WattsUp Energy
+          </h1>
+          <p className="text-xl font-medium text-emerald-600">
+            Power Up. Earn Up.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+        {/* Register Card */}
+        <Card className="shadow-xl border-0">
+          <CardContent className="pt-8 pb-6 px-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-1">Create Account</h2>
+              <p className="text-gray-500">Enter your details to register</p>
+            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  placeholder="John"
-                  {...register('firstName', {
-                    required: 'First name is required',
-                  })}
-                  disabled={loading}
-                />
-                {errors.firstName && (
-                  <p className="text-sm text-red-500">{errors.firstName.message}</p>
-                )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
+                  <Input
+                    required
+                    value={formData.firstName}
+                    onChange={(e) => {
+                      setFormData({ ...formData, firstName: e.target.value });
+                      if (error) setError('');
+                    }}
+                    placeholder="First Name"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
+                  <Input
+                    required
+                    value={formData.lastName}
+                    onChange={(e) => {
+                      setFormData({ ...formData, lastName: e.target.value });
+                      if (error) setError('');
+                    }}
+                    placeholder="Last Name"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
                 <Input
-                  id="lastName"
-                  placeholder="Doe"
-                  {...register('lastName', {
-                    required: 'Last name is required',
-                  })}
-                  disabled={loading}
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (error) setError('');
+                  }}
+                  placeholder="Enter Your Email"
+                  className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                 />
-                {errors.lastName && (
-                  <p className="text-sm text-red-500">{errors.lastName.message}</p>
-                )}
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="john@example.com"
-                {...register('email', {
-                  required: 'Email is required',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Invalid email address',
-                  },
-                })}
-                disabled={loading}
-              />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
-              )}
-            </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
+                <Input
+                  type="tel"
+                  required
+                  value={formData.phone}
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value });
+                    if (error) setError('');
+                  }}
+                  placeholder="+92 300 1234567"
+                  className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register('password', {
-                  required: 'Password is required',
-                  minLength: {
-                    value: 6,
-                    message: 'Password must be at least 6 characters',
-                  },
-                })}
-                disabled={loading}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
-              )}
-            </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={formData.password}
+                    onChange={(e) => {
+                      setFormData({ ...formData, password: e.target.value });
+                      if (error) setError('');
+                    }}
+                    placeholder="Enter Your Password"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                {...register('confirmPassword', {
-                  required: 'Please confirm your password',
-                  validate: (value) =>
-                    value === password || 'Passwords do not match',
-                })}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
+                <div className="relative">
+                  <Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={formData.confirmPassword}
+                    onChange={(e) => {
+                      setFormData({ ...formData, confirmPassword: e.target.value });
+                      if (error) setError('');
+                    }}
+                    placeholder="Confirm Your Password"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200 mt-6" 
                 disabled={loading}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
-              )}
-            </div>
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating Account...
+                  </span>
+                ) : 'Register'}
+              </Button>
+
+              <p className="text-center text-sm text-gray-600 pt-2">
+                Already have an account?{' '}
+                <Link to="/login" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
+                  Login
+                </Link>
+              </p>
+            </form>
           </CardContent>
-
-          <CardFooter className="flex flex-col space-y-4">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <LoadingSpinner size="sm" className="mr-2" />
-                  Creating account...
-                </>
-              ) : (
-                'Create Account'
-              )}
-            </Button>
-
-            <div className="text-sm text-center text-gray-600">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="text-blue-600 hover:underline font-medium"
-              >
-                Sign in
-              </Link>
-            </div>
-
-            <div className="text-center">
-              <Link
-                to="/register-kyc"
-                className="text-sm text-blue-600 hover:underline font-medium"
-              >
-                Register with KYC
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+
+
+
 

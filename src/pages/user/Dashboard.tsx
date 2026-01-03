@@ -1,400 +1,295 @@
-import { Navbar } from "@/components/Navbar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, TrendingUp, Award, Leaf, Wallet, Info, X, Coins, Clock, Activity } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { dashboardApi } from '@/api/dashboard.api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  Zap, 
+  TrendingUp, 
+  Award, 
+  CloudRain,
+  Activity,
+  Clock,
+  AlertCircle,
+  LogOut,
+  User
+} from 'lucide-react';
 
-interface ActivityItem {
-  id: string;
-  type: 'reward' | 'certificate' | 'energy' | 'prediction' | 'kyc' | 'login';
-  title: string;
-  description: string;
-  amount?: number;
-  timestamp: string;
-  icon: React.ElementType;
-  color: string;
-}
-
-const Dashboard = () => {
-  const [walletBalance, setWalletBalance] = useState({ zabCoin: 1234, totalEarned: 5678 });
+export const Dashboard = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [showKYCNotification, setShowKYCNotification] = useState(false);
-  const [kycStatus, setKycStatus] = useState<string | null>(null);
-  const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
-  const { toast } = useToast();
+  const [data, setData] = useState<any>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Simulate fetching wallet data
-    setTimeout(() => {
-      setWalletBalance({ zabCoin: 1234, totalEarned: 5678 });
-      setLoading(false);
-    }, 1000);
-
-    // Check if we should show KYC notification
-    const showNotification = localStorage.getItem("showKYCNotification");
-    if (showNotification === "true") {
-      setShowKYCNotification(true);
-      // Clear the flag so it doesn't show again
-      localStorage.removeItem("showKYCNotification");
-    }
-
-    // Check KYC status
-    checkKYCStatus();
-    
-    // Fetch recent activities
-    fetchRecentActivities();
+    loadDashboard();
   }, []);
 
-  const fetchRecentActivities = async () => {
+  const loadDashboard = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      // DUMMY API CALL FOR UI TESTING - Remove this when backend is ready
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Simulate recent activities
-      const dummyActivities: ActivityItem[] = [
-        {
-          id: "1",
-          type: "reward",
-          title: "Reward Earned",
-          description: "Earned 500 ZABcoins for energy generation",
-          amount: 500,
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-          icon: Coins,
-          color: "text-yellow-500",
-        },
-        {
-          id: "2",
-          type: "certificate",
-          title: "Certificate Earned",
-          description: "Carbon Offset Certificate issued",
-          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-          icon: Award,
-          color: "text-blue-500",
-        },
-        {
-          id: "3",
-          type: "energy",
-          title: "Energy Generated",
-          description: "Generated 150 kWh of renewable energy",
-          timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-          icon: Zap,
-          color: "text-primary",
-        },
-        {
-          id: "4",
-          type: "reward",
-          title: "Reward Earned",
-          description: "Earned 1000 ZABcoins for referral bonus",
-          amount: 1000,
-          timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-          icon: Coins,
-          color: "text-yellow-500",
-        },
-        {
-          id: "5",
-          type: "prediction",
-          title: "Prediction Completed",
-          description: "Your energy generation prediction was accurate",
-          timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-          icon: TrendingUp,
-          color: "text-purple-500",
-        },
-        {
-          id: "6",
-          type: "certificate",
-          title: "Certificate Earned",
-          description: "Sustainability Certificate issued",
-          timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
-          icon: Award,
-          color: "text-blue-500",
-        },
-      ];
-
-      setRecentActivities(dummyActivities);
-
-      /* 
-      // REAL API CALL - Uncomment this when backend is ready
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/activity/recent`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setRecentActivities(data.activities || []);
-      }
-      */
-    } catch (error) {
-      console.error("Failed to fetch recent activities:", error);
+      // const response = await dashboardApi.getUserDashboard();
+      // setData(response);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load dashboard');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const formatTimeAgo = (timestamp: string): string => {
-    const now = new Date();
-    const time = new Date(timestamp);
-    const diffInSeconds = Math.floor((now.getTime() - time.getTime()) / 1000);
-
-    if (diffInSeconds < 60) {
-      return "Just now";
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    } else {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days} day${days > 1 ? 's' : ''} ago`;
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userId');
+    navigate('/login');
   };
 
-  const checkKYCStatus = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-lg">Loading dashboard...</div>
+      </div>
+    );
+  }
 
-      // DUMMY API CALL FOR UI TESTING - Remove this when backend is ready
-      // Simulate API call with delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Simulate KYC status response
-      // Change this to test different states: 'pending', 'approved', 'rejected', null
-      const dummyKycStatus = {
-        status: 'pending', // Change to 'approved' or 'rejected' to test different UI states
-        submittedAt: new Date().toISOString(),
-      };
-
-      setKycStatus(dummyKycStatus.status);
-      
-      // Show notification if KYC is pending (first time after login)
-      if (dummyKycStatus.status === 'pending' && !localStorage.getItem("kycNotificationShown")) {
-        setShowKYCNotification(true);
-        localStorage.setItem("kycNotificationShown", "true");
-      }
-
-      console.log("KYC Status (dummy):", dummyKycStatus.status);
-
-      /* 
-      // REAL API CALL - Uncomment this when backend is ready
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/kyc/status`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setKycStatus(data.status);
-        
-        // Show notification if KYC is pending (first time after login)
-        if (data.status === 'pending' && !localStorage.getItem("kycNotificationShown")) {
-          setShowKYCNotification(true);
-          localStorage.setItem("kycNotificationShown", "true");
-        }
-      }
-      */
-    } catch (error) {
-      console.error("Failed to check KYC status:", error);
-    }
-  };
-
-  const handleDismissNotification = () => {
-    setShowKYCNotification(false);
-  };
-
-  const stats = [
-    {
-      title: "Total Energy Generated",
-      value: "1,247 kWh",
-      change: "+12.5%",
-      icon: Zap,
-      color: "from-primary to-accent",
-      clickable: false
-    },
-    {
-      title: "ZABcoin Balance",
-      value: loading ? "..." : walletBalance.zabCoin.toLocaleString(),
-      change: `Total earned: ${loading ? "..." : walletBalance.totalEarned.toLocaleString()}`,
-      icon: Wallet,
-      color: "from-yellow-500 to-orange-500",
-      clickable: false
-    },
-    {
-      title: "CO₂ Offset",
-      value: "892 kg",
-      change: "+15.8%",
-      icon: Leaf,
-      color: "from-green-500 to-emerald-600"
-    },
-    {
-      title: "Certificates Earned",
-      value: "12",
-      change: "+2",
-      icon: Award,
-      color: "from-blue-500 to-cyan-500",
-      clickable: false
-    }
-  ];
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="container px-4 py-8">
-        <div className="space-y-8">
-          <div className="space-y-2 animate-fade-in">
-            <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back! Here's your renewable energy overview.
-            </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Top Navigation */}
+      <nav className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="w-6 h-6 text-green-500" />
+            <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
           </div>
-
-          {/* KYC Notification */}
-          {showKYCNotification && (
-            <Alert className="glass-card border-primary/20 animate-slide-up">
-              <Info className="h-4 w-4" />
-              <AlertTitle>KYC Request Submitted</AlertTitle>
-              <AlertDescription className="flex items-center justify-between">
-                <span>
-                  Your KYC request has been sent to the admin for verification. You will be notified once your KYC is approved.
-                </span>
-                <button
-                  onClick={handleDismissNotification}
-                  className="ml-4 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* KYC Status Alert */}
-          {kycStatus === 'pending' && !showKYCNotification && (
-            <Alert className="glass-card border-yellow-500/20 animate-slide-up">
-              <Info className="h-4 w-4 text-yellow-500" />
-              <AlertTitle>KYC Verification Pending</AlertTitle>
-              <AlertDescription>
-                Your KYC verification is pending. Please wait for admin approval.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {kycStatus === 'approved' && (
-            <Alert className="glass-card border-green-500/20 animate-slide-up">
-              <Info className="h-4 w-4 text-green-500" />
-              <AlertTitle>KYC Verified</AlertTitle>
-              <AlertDescription>
-                Congratulations! Your KYC has been verified. You can now earn ZABcoins!
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {kycStatus === 'rejected' && (
-            <Alert className="glass-card border-red-500/20 animate-slide-up">
-              <Info className="h-4 w-4 text-red-500" />
-              <AlertTitle>KYC Verification Rejected</AlertTitle>
-              <AlertDescription>
-                Your KYC verification was rejected. Please submit your KYC again with corrected information.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat, index) => (
-              <Card 
-                key={stat.title} 
-                className={`glass-card animate-slide-up transition-transform ${stat.clickable ? 'cursor-pointer hover:scale-105' : ''}`}
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {stat.title}
-                  </CardTitle>
-                  <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.color} energy-glow`}>
-                    <stat.icon className="h-4 w-4 text-white" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{stat.value}</div>
-                  <p className="text-xs text-primary flex items-center mt-1">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    {stat.change} from last month
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex items-center gap-6">
+            <button className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg bg-green-500 text-white font-medium">
+              Dashboard
+            </button>
+            <button className="text-gray-600 hover:text-gray-900">Wallet</button>
+            <button className="text-gray-600 hover:text-gray-900">Install to Earn</button>
+            <button className="text-gray-600 hover:text-gray-900">Energy</button>
+            <button className="text-gray-600 hover:text-gray-900">Certificates</button>
+            <button className="text-gray-600 hover:text-gray-900">CO₂ Offset</button>
+            <button className="text-gray-600 hover:text-gray-900">Marketplace</button>
+            <button className="text-gray-600 hover:text-gray-900">Predict & Win</button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/profile')}
+              className="flex items-center gap-2"
+            >
+              <User className="w-4 h-4" />
+              Profile
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleLogout}
+              className="text-red-600 hover:text-red-700"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
           </div>
+        </div>
+      </nav>
 
-          {/* Recent Activity Section */}
-          <Card className="glass-card animate-slide-up" style={{ animationDelay: "400ms" }}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-primary" />
-                    Recent Activity
-                  </CardTitle>
-                  <CardDescription>
-                    Your latest activities and achievements
-                  </CardDescription>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Welcome Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-500 mt-1">Welcome back! Here's your renewable energy overview.</p>
+        </div>
+
+        {/* KYC Success Alert - User is verified and KYC approved */}
+        <div className="mb-6">
+          <Card className="border-green-200 bg-green-50">
+            <CardContent className="py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <Award className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-green-900">✓ KYC Verified Successfully</h3>
+                  <p className="text-sm text-green-700">Your account has been approved and you have full access to all features.</p>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              {recentActivities.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No recent activities</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {recentActivities.map((activity, index) => {
-                    const Icon = activity.icon;
-                    return (
-                      <div
-                        key={activity.id}
-                        className="flex items-start gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors animate-fade-in"
-                        style={{ animationDelay: `${index * 50}ms` }}
-                      >
-                        <div className={`p-2 rounded-lg bg-background border ${activity.color} border-opacity-20`}>
-                          <Icon className={`h-5 w-5 ${activity.color}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <h4 className="font-semibold text-sm">{activity.title}</h4>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {formatTimeAgo(activity.timestamp)}
-                            </span>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {activity.description}
-                          </p>
-                          {activity.amount && (
-                            <div className="mt-2">
-                              <span className="text-sm font-bold text-yellow-500">
-                                +{activity.amount.toLocaleString()} ZABcoins
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
-      </main>
+
+        {/* KPI Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Total Energy Generated */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap className="w-4 h-4 text-blue-500" />
+                    <p className="text-sm font-medium text-gray-600">Total Energy Generated</p>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900">
+                    {data?.totalEnergyGenerated || 0} <span className="text-xl">kWh</span>
+                  </h3>
+                  <p className="text-xs text-green-600 mt-1">
+                    ↑ +12.5% from last month
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ZatKoin Balance */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-4 h-4 text-yellow-500" />
+                    <p className="text-sm font-medium text-gray-600">ZatKoin Balance</p>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900">
+                    {data?.tokensAvailable || 0}
+                  </h3>
+                  <p className="text-xs text-blue-600 mt-1">
+                    ↑ Total earned: {data?.totalTokensEarned || 0} from last month
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-yellow-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* CO₂ Offset */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CloudRain className="w-4 h-4 text-green-500" />
+                    <p className="text-sm font-medium text-gray-600">CO₂ Offset</p>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900">
+                    {Math.round((data?.totalEnergyGenerated || 0) * 0.7)} <span className="text-xl">kg</span>
+                  </h3>
+                  <p className="text-xs text-green-600 mt-1">
+                    ↑ +15.2% from last month
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <CloudRain className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Certificates Earned */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="w-4 h-4 text-purple-500" />
+                    <p className="text-sm font-medium text-gray-600">Certificates Earned</p>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900">
+                    {data?.certificatesEarned || 0}
+                  </h3>
+                  <p className="text-xs text-green-600 mt-1">
+                    ↑ +2 from last month
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                  <Award className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Activity className="w-5 h-5 text-gray-600" />
+              <CardTitle>Recent Activity</CardTitle>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">Your latest activities and achievements</p>
+          </CardHeader>
+          <CardContent>
+            {data?.recentActivity && data.recentActivity.length > 0 ? (
+              <div className="space-y-4">
+                {data.recentActivity.map((activity: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-4 pb-4 border-b last:border-0">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      activity.type === 'energy' ? 'bg-blue-100' :
+                      activity.type === 'tokens' ? 'bg-yellow-100' :
+                      activity.type === 'prediction' ? 'bg-purple-100' :
+                      'bg-green-100'
+                    }`}>
+                      {activity.type === 'energy' ? <Zap className="w-5 h-5 text-blue-600" /> :
+                       activity.type === 'tokens' ? <TrendingUp className="w-5 h-5 text-yellow-600" /> :
+                       activity.type === 'prediction' ? <Activity className="w-5 h-5 text-purple-600" /> :
+                       <Award className="w-5 h-5 text-green-600" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{activity.description}</p>
+                      {activity.amount && (
+                        <p className="text-lg font-bold text-yellow-600 mt-1">
+                          +{activity.amount} ZatKoins
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <Clock className="w-3 h-3" />
+                        {new Date(activity.date).toLocaleDateString()}
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        activity.type === 'energy' ? 'bg-blue-100 text-blue-700' :
+                        activity.type === 'tokens' ? 'bg-yellow-100 text-yellow-700' :
+                        activity.type === 'prediction' ? 'bg-purple-100 text-purple-700' :
+                        'bg-green-100 text-green-700'
+                      }`}>
+                        {activity.type}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Activity className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500">No recent activity</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
 
-export default Dashboard;
+
+
+

@@ -1,218 +1,185 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { useAuth } from '@/context/auth.context';
+import { authApi } from '@/api/auth.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { toast } from 'sonner';
-import { AlertCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Eye, EyeOff, Zap } from 'lucide-react';
 
-interface LoginFormData {
-  email: string;
-  password: string;
-}
-
-export default function Login() {
+export const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('🔵 Form submitted!', formData);
+    
+    // Clear previous errors
+    setError('');
+    setLoading(true);
 
-  const onSubmit = async (data: LoginFormData) => {
     try {
-      setLoading(true);
-      setError(null);
+      console.log('🔵 Calling login API...');
+      const response = await authApi.login(formData);
+      console.log('✅ Login response:', response);
       
-      await login(data);
-      
-      toast.success('Login successful!');
-      navigate('/dashboard');
-    } catch (err: any) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      const isUnverified = err?.isUnverified || err?.status === 401;
-      const isUserNotFound = errorMessage.includes('not registered') || 
-                            errorMessage.includes('register first') ||
-                            errorMessage.includes('User not found');
-      
-      if (isUnverified) {
-        // User is not verified
-        const message = errorMessage || 'Please verify your email before logging in';
-        setError(message);
-        toast.error(message, {
-          description: 'Please check your email and click the verification link to activate your account.',
-          duration: 5000,
-        });
-      } else if (isUserNotFound) {
-        // User not found - need to register
-        const message = errorMessage || 'This email is not registered. Please register first.';
-        setError(message);
-        toast.error(message, {
-          description: 'Please create an account first by registering.',
-          duration: 5000,
-        });
-      } else {
-        // Other errors (invalid password, etc.)
-        setError(errorMessage);
-        toast.error(errorMessage);
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('userId', response.user.id.toString());
+      localStorage.setItem('userRole', response.user.role);
+
+      if (!response.user.isVerified) {
+        console.log('❌ Email not verified');
+        setError('Email not verified. Please check your email.');
+        setLoading(false);
+        return;
       }
+
+      // Handle KYC status routing
+      const kycStatus = response.user.kycStatus?.toLowerCase();
+      
+      if (kycStatus === 'approved') {
+        console.log('➡️ Redirecting to dashboard');
+        navigate('/dashboard');
+      } else if (!kycStatus || kycStatus === '' || kycStatus === 'pending' || kycStatus === 'none') {
+        console.log('➡️ Redirecting to KYC submission page');
+        navigate('/kyc/info');
+      } else {
+        console.log('➡️ Redirecting to KYC status page');
+        navigate('/kyc-status');
+      }
+    } catch (err: any) {
+      console.error('❌ Login error:', err);
+      console.error('❌ Error response:', err.response);
+      
+      // Extract error message from different possible locations
+      let message = 'Login failed. Please try again.';
+      
+      if (err.response?.data?.message) {
+        message = err.response.data.message;
+      } else if (err.message) {
+        message = err.message;
+      }
+      
+      console.log('❌ Setting error message:', message);
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-              W
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+      <div className="w-full max-w-md">
+        {/* Logo and Branding */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
+              <Zap className="w-8 h-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
-          <CardDescription className="text-center">
-            Sign in to your WattsUp Energy account
-          </CardDescription>
-        </CardHeader>
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600 mb-2">
+            WattsUp Energy
+          </h1>
+          <p className="text-xl font-medium text-emerald-600">
+            Power Up. Earn Up.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            {error && (
-              <Alert variant={
-                error.includes('verify') || error.includes('verified') ? 'default' : 
-                error.includes('not registered') || error.includes('register first') ? 'default' :
-                'destructive'
-              }>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <div className="font-medium">{error}</div>
-                  
-                  {/* Unverified user message */}
-                  {(error.includes('verify') || error.includes('verified')) && (
-                    <div className="mt-2 text-sm space-y-1">
-                      <p>Didn't receive the email? Check your spam folder.</p>
-                      <p>
-                        Need help?{' '}
-                        <Link 
-                          to="/register" 
-                          className="text-blue-600 hover:underline font-medium"
-                        >
-                          Register again
-                        </Link>
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* User not registered message */}
-                  {(error.includes('not registered') || error.includes('register first')) && (
-                    <div className="mt-2 text-sm space-y-1">
-                      <p>Don't have an account yet?</p>
-                      <div className="flex gap-2">
-                        <Link 
-                          to="/register" 
-                          className="text-blue-600 hover:underline font-medium"
-                        >
-                          Register Now
-                        </Link>
-                        <span>or</span>
-                        <Link 
-                          to="/register-kyc" 
-                          className="text-blue-600 hover:underline font-medium"
-                        >
-                          Register with KYC
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="john@example.com"
-                {...register('email', {
-                  required: 'Email is required',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Invalid email address',
-                  },
-                })}
-                disabled={loading}
-              />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
-              )}
+        {/* Login Card */}
+        <Card className="shadow-xl border-0">
+          <CardContent className="pt-8 pb-6 px-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-1">Welcome</h2>
+              <p className="text-gray-500">Sign in to your account</p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register('password', {
-                  required: 'Password is required',
-                })}
-                disabled={loading}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
               )}
-            </div>
 
-            <div className="flex items-center justify-end">
-              <Link
-                to="/forgot-password"
-                className="text-sm text-blue-600 hover:underline"
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                <Input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (error) setError('');
+                  }}
+                  placeholder="Enter Your Email"
+                  className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={formData.password}
+                    onChange={(e) => {
+                      setFormData({ ...formData, password: e.target.value });
+                      if (error) setError('');
+                    }}
+                    placeholder="Enter Your Password"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-sm pt-1">
+                <Link to="/register" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
+                  New here? Sign Up
+                </Link>
+                <Link to="/forgot-password" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200" 
+                disabled={loading || !formData.email || !formData.password}
               >
-                Forgot password?
-              </Link>
-            </div>
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing In...
+                  </span>
+                ) : 'Sign In'}
+              </Button>
+            </form>
           </CardContent>
-
-          <CardFooter className="flex flex-col space-y-4">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <LoadingSpinner size="sm" className="mr-2" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </Button>
-
-            <div className="text-sm text-center text-gray-600">
-              Don't have an account?{' '}
-              <Link
-                to="/register"
-                className="text-blue-600 hover:underline font-medium"
-              >
-                Sign up
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+
 
