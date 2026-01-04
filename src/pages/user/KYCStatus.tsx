@@ -101,7 +101,7 @@ export const KYCStatus = () => {
               </div>
             </div>
 
-            {documents.length > 0 && (
+            {/* {documents.length > 0 && (
               <div className="mt-6">
                 <h3 className="font-semibold text-gray-700 mb-3">Submitted Documents:</h3>
                 <div className="space-y-2">
@@ -117,7 +117,7 @@ export const KYCStatus = () => {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
           </CardContent>
         </Card>
       </div>
@@ -176,7 +176,7 @@ export const KYCStatus = () => {
               </div>
             </div>
 
-            {documents.length > 0 && (
+            {/* {documents.length > 0 && (
               <div className="mt-4">
                 <h3 className="font-semibold text-gray-700 mb-3">Previously Submitted Documents:</h3>
                 <div className="space-y-2">
@@ -192,7 +192,7 @@ export const KYCStatus = () => {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
 
             <Button 
               onClick={() => navigate('/kyc/info')} 

@@ -181,7 +181,7 @@ export const KYCDetail = () => {
     if (!filePath) return '';
     
     // Fix backslashes to forward slashes (Windows path issue)
-    const normalizedPath = filePath.replace(/\\/g, '/');
+    let normalizedPath = filePath.replace(/\\/g, '/');
     
     // If already a full URL, return as is (with normalized slashes)
     if (normalizedPath.startsWith('http://') || normalizedPath.startsWith('https://')) {
@@ -191,13 +191,18 @@ export const KYCDetail = () => {
     // Get base URL from environment or default
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
     
-    // If filePath starts with /, it's already a path, just prepend base URL
-    if (normalizedPath.startsWith('/')) {
-      return `${baseUrl}${normalizedPath}`;
+    // Remove /api/v1 prefix if present (it might be in the stored path)
+    if (normalizedPath.startsWith('/api/v1/')) {
+      normalizedPath = normalizedPath.replace('/api/v1/', '');
     }
     
-    // Otherwise, assume it's a relative path
-    return `${baseUrl}/${normalizedPath}`;
+    // If filePath starts with /, remove it (we'll add it back with the correct prefix)
+    if (normalizedPath.startsWith('/')) {
+      normalizedPath = normalizedPath.substring(1);
+    }
+    
+    // Construct the correct URL: baseUrl/api/v1/files/path
+    return `${baseUrl}/api/v1/files/${normalizedPath}`;
   };
 
   // Create document array from KYC entity

@@ -1,31 +1,30 @@
 import { api } from './axios.config';
-
-interface UserProfile {
-  id: number;
-  name: string;
-  email: string;
-  phone: string | null;
-  walletAddress: string;
-  role: string;
-  isVerified: boolean;
-  createdAt: Date;
-}
+import { authApi } from './auth.api';
 
 interface UpdateProfileRequest {
   name?: string;
   phone?: string;
 }
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  isVerified: boolean;
+  kycStatus?: string | null;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const profileApi = {
-  getProfile: async (): Promise<UserProfile> => {
-    const response = await api.get('/profile');
-    return response.data;
+  getProfile: async (): Promise<User> => {
+    return authApi.getCurrentUser();
   },
 
-  updateProfile: async (data: UpdateProfileRequest): Promise<UserProfile> => {
-    const response = await api.put('/profile', data);
+  updateProfile: async (data: UpdateProfileRequest): Promise<User> => {
+    const response = await api.patch('/auth/me', data);
     return response.data;
   },
 };
-
-

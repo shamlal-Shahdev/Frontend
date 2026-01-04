@@ -78,8 +78,6 @@ export const Profile = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
     navigate('/login');
   };
 

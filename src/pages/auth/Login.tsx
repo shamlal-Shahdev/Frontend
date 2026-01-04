@@ -29,6 +29,18 @@ export const Login = () => {
       const response = await authApi.login(formData);
       console.log('✅ Login response:', response);
       
+      // Safety check: Block admin users from using user login
+      if (response.user.role === 'admin' || response.user.role === 'ADMIN') {
+        console.log('❌ Admin user attempted to login through user endpoint');
+        setError('Admin users must use the admin login page. Redirecting...');
+        setLoading(false);
+        // Redirect to admin login after a short delay
+        setTimeout(() => {
+          navigate('/admin/login');
+        }, 2000);
+        return;
+      }
+
       localStorage.setItem('token', response.token);
       localStorage.setItem('userId', response.user.id.toString());
       localStorage.setItem('userRole', response.user.role);
@@ -46,7 +58,7 @@ export const Login = () => {
       if (kycStatus === 'approved') {
         console.log('➡️ Redirecting to dashboard');
         navigate('/dashboard');
-      } else if (!kycStatus || kycStatus === '' || kycStatus === 'pending' || kycStatus === 'none') {
+      } else if (!kycStatus || kycStatus === '' || kycStatus === 'pending' || kycStatus === 'not_submitted') {
         console.log('➡️ Redirecting to KYC submission page');
         navigate('/kyc/info');
       } else {
@@ -102,7 +114,17 @@ export const Login = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                  {error}
+                  <div className="mb-2">{error}</div>
+                  {error.toLowerCase().includes('admin') && (
+                    <div className="mt-2 pt-2 border-t border-red-200">
+                      <Link 
+                        to="/admin/login" 
+                        className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline"
+                      >
+                        → Go to Admin Login Page
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
 
