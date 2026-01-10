@@ -95,19 +95,27 @@ export const authApi = {
               // Unverified user or unauthorized
               errorMessage = error.message || 'Please verify your email before logging in';
             } else if (response.status === 422) {
-              // Validation errors (422 Unprocessable Entity)
+              // Validation errors (422 Unprocessable Entity) - Invalid credentials, user not found, etc.
               console.log('🔍 Processing 422 error:', error);
               
               // First check for message field (most common)
               if (error.message) {
+                const msg = error.message;
                 // Check if it's a "user not found" message
-                if (error.message.includes('not registered') || 
-                    error.message.includes('register first') ||
-                    error.message.includes('not registered')) {
-                  errorMessage = error.message;
+                if (msg.includes('not registered') || 
+                    msg.includes('register first') ||
+                    msg.includes('not found')) {
+                  errorMessage = msg;
                   console.log('✅ User not found message detected:', errorMessage);
+                } else if (msg.includes('Invalid credentials') || 
+                          msg.includes('invalid password') ||
+                          msg.includes('Invalid password') ||
+                          msg.includes('credentials') ||
+                          msg.toLowerCase().includes('incorrect password')) {
+                  errorMessage = 'Invalid password or credentials. Please check your email and password.';
+                  console.log('✅ Invalid credentials message detected');
                 } else {
-                  errorMessage = error.message;
+                  errorMessage = msg;
                 }
               }
               
@@ -121,9 +129,23 @@ export const authApi = {
                     ? error.errors.email[0] 
                     : error.errors.email;
                   if (emailError.includes('not registered') || 
-                      emailError.includes('register first')) {
+                      emailError.includes('register first') ||
+                      emailError.includes('not found')) {
                     errorMessage = emailError;
                     console.log('✅ User not found in errors.email:', errorMessage);
+                  }
+                }
+                
+                // Check for password error (invalid credentials)
+                if (error.errors.password) {
+                  const passwordError = Array.isArray(error.errors.password) 
+                    ? error.errors.password[0] 
+                    : error.errors.password;
+                  if (passwordError.includes('Invalid') || 
+                      passwordError.includes('invalid') ||
+                      passwordError.includes('credentials')) {
+                    errorMessage = 'Invalid password or credentials. Please check your email and password.';
+                    console.log('✅ Invalid password in errors.password');
                   }
                 }
                 
@@ -137,20 +159,33 @@ export const authApi = {
                   const fieldErrors = Object.values(error.errors).flat();
                   errorMessage = Array.isArray(fieldErrors) && fieldErrors.length > 0
                     ? fieldErrors[0]
-                    : error.message || 'Invalid credentials';
+                    : error.message || 'Invalid password or credentials. Please check your email and password.';
                 }
               }
               
-              // Final fallback
+              // Final fallback for 422 - assume invalid credentials
               if (!errorMessage || errorMessage === 'Login failed') {
-                errorMessage = error.message || 'Invalid credentials';
+                errorMessage = error.message || 'Invalid password or credentials. Please check your email and password.';
               }
             } else {
               errorMessage = error.message || error.error || errorMessage;
             }
           }
         } catch (e) {
-          errorMessage = responseText || response.statusText || errorMessage;
+          // If parsing fails, check if responseText contains technical error messages
+          if (responseText && (responseText.includes('Request failed') || responseText.includes('status code'))) {
+            // Replace technical errors with user-friendly message
+            if (response.status === 422 || response.status === 401) {
+              errorMessage = 'Invalid password or credentials. Please check your email and password.';
+            } else {
+              errorMessage = 'Login failed. Please try again.';
+            }
+          } else if (response.status === 422 || response.status === 401) {
+            // If parsing failed but we have a status code, provide user-friendly message
+            errorMessage = 'Invalid password or credentials. Please check your email and password.';
+          } else {
+            errorMessage = responseText || response.statusText || errorMessage;
+          }
         }
         
         // Create custom error with status code

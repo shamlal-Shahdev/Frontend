@@ -124,6 +124,37 @@ interface RejectKycResponse {
   reason: string;
 }
 
+interface InstallationEntity {
+  id: number;
+  userId: number;
+  name: string;
+  installationType: string;
+  capacityKw: number;
+  location: string;
+  status: 'pending' | 'verified' | 'rejected';
+  isActive: boolean;
+  registeredAt: string;
+  verifiedAt?: string | null;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    phone?: string | null;
+  };
+}
+
+interface GetInstallationsResponse {
+  data: InstallationEntity[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+interface UpdateInstallationRequest {
+  status?: 'pending' | 'verified' | 'rejected';
+  isActive?: boolean;
+}
+
 export const adminApi = {
   login: async (data: AdminLoginRequest): Promise<AdminLoginResponse> => {
     const response = await api.post('/admin/auth/login', data);
@@ -153,6 +184,28 @@ export const adminApi = {
   rejectKyc: async (userId: number, data: RejectKycRequest): Promise<RejectKycResponse> => {
     const response = await api.put(`/admin/kyc/${userId}/reject`, data);
     return response.data;
+  },
+
+  // Installation Requests
+  getInstallations: async (page: number = 1, limit: number = 10): Promise<GetInstallationsResponse> => {
+    const response = await api.get('/admin/installations', {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+
+  getInstallationById: async (id: number): Promise<InstallationEntity> => {
+    const response = await api.get(`/admin/installations/${id}`);
+    return response.data;
+  },
+
+  updateInstallation: async (id: number, data: UpdateInstallationRequest): Promise<InstallationEntity> => {
+    const response = await api.patch(`/admin/installations/${id}`, data);
+    return response.data;
+  },
+
+  deleteInstallation: async (id: number): Promise<void> => {
+    await api.delete(`/admin/installations/${id}`);
   },
 };
 

@@ -67,6 +67,13 @@ export const AdminDashboard = () => {
               <FileCheck className="w-4 h-4 mr-2" />
               Review KYC
             </Button>
+            <Button 
+              onClick={() => navigate('/admin/installations')}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              <FileCheck className="w-4 h-4 mr-2" />
+              Installations
+            </Button>
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />
               Logout

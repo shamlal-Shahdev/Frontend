@@ -70,12 +70,42 @@ export const Login = () => {
       console.error('❌ Error response:', err.response);
       
       // Extract error message from different possible locations
-      let message = 'Login failed. Please try again.';
+      let message = 'Invalid password or credentials. Please try again.';
       
+      // Handle different error formats
       if (err.response?.data?.message) {
-        message = err.response.data.message;
+        const errorMsg = err.response.data.message;
+        // Check for specific error types and provide user-friendly messages
+        if (errorMsg.includes('not registered') || errorMsg.includes('register first')) {
+          message = 'This email is not registered. Please sign up first.';
+        } else if (errorMsg.includes('Invalid credentials') || errorMsg.includes('invalid password') || errorMsg.includes('password')) {
+          message = 'Invalid password or credentials. Please check your email and password.';
+        } else if (errorMsg.includes('not verified') || errorMsg.includes('verify')) {
+          message = 'Please verify your email before logging in.';
+        } else {
+          message = errorMsg;
+        }
       } else if (err.message) {
-        message = err.message;
+        // Handle error messages from authApi
+        const errorMsg = err.message;
+        if (errorMsg.includes('Request failed') || errorMsg.includes('status code')) {
+          // Generic error - show user-friendly message
+          message = 'Invalid password or credentials. Please check your email and password.';
+        } else if (errorMsg.includes('not registered') || errorMsg.includes('register first')) {
+          message = 'This email is not registered. Please sign up first.';
+        } else if (errorMsg.includes('verify') || errorMsg.includes('unverified')) {
+          message = 'Please verify your email before logging in.';
+        } else if (errorMsg.includes('Invalid credentials') || errorMsg.includes('invalid password')) {
+          message = 'Invalid password or credentials. Please check your email and password.';
+        } else if (!errorMsg.includes('status code') && !errorMsg.includes('Request failed')) {
+          // Use the error message if it's not a generic HTTP error
+          message = errorMsg;
+        }
+      }
+      
+      // Final check - if message still contains technical errors, replace with user-friendly message
+      if (message.includes('status code') || message.includes('Request failed') || message.includes('422')) {
+        message = 'Invalid password or credentials. Please check your email and password.';
       }
       
       console.log('❌ Setting error message:', message);

@@ -79,7 +79,12 @@ export const Dashboard = () => {
               Dashboard
             </button>
             <button className="text-gray-600 hover:text-gray-900">Wallet</button>
-            <button className="text-gray-600 hover:text-gray-900">Install to Earn</button>
+            <button 
+              className="text-gray-600 hover:text-gray-900"
+              onClick={() => navigate('/install-to-earn')}
+            >
+              Install to Earn
+            </button>
             <button className="text-gray-600 hover:text-gray-900">Energy</button>
             <button className="text-gray-600 hover:text-gray-900">Certificates</button>
             <button className="text-gray-600 hover:text-gray-900">CO₂ Offset</button>

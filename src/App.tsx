@@ -19,12 +19,14 @@ import { KYCInfo } from '@/pages/user/KYCInfo';
 import { KYCStatus } from "./pages/user/KYCStatus";
 import { Dashboard } from "./pages/user/Dashboard";
 import { Profile } from "./pages/user/Profile";
+import InstallToEarn from "./pages/user/InstallToEarn";
 
 // Admin pages
 import { AdminLogin } from "./pages/admin/AdminLogin";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { KYCReview } from "./pages/admin/KYCReview";
 import { KYCDetail } from "./pages/admin/KYCDetail";
+import { InstallationRequests } from "./pages/admin/InstallationRequests";
 
 // Other pages
 import NotFound from "./pages/NotFound";
@@ -80,6 +82,11 @@ const App = () => {
               <Profile />
             </ProtectedRoute>
           } />
+          <Route path="/install-to-earn" element={
+            <ProtectedRoute>
+              <InstallToEarn />
+            </ProtectedRoute>
+          } />
 
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -96,6 +103,11 @@ const App = () => {
           <Route path="/admin/kyc/:userId" element={
             <AdminRoute>
               <KYCDetail />
+            </AdminRoute>
+          } />
+          <Route path="/admin/installations" element={
+            <AdminRoute>
+              <InstallationRequests />
             </AdminRoute>
           } />
 

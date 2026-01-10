@@ -22,9 +22,85 @@ export const Register = () => {
     phone: '',
   });
 
+  // Validation function for email format
+  const validateEmail = (email: string): string | null => {
+    if (!email.trim()) {
+      return 'Email is required';
+    }
+    // Comprehensive email regex pattern
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address (e.g., example@domain.com)';
+    }
+    return null;
+  };
+
+  // Validation function for password strength
+  const validatePassword = (password: string): string | null => {
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!/[a-z]/.test(password)) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!/[0-9]/.test(password)) {
+      return 'Password must contain at least one digit';
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      return 'Password must contain at least one special character';
+    }
+    return null;
+  };
+
+  // Handle first name input - only letters and spaces
+  const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow letters, spaces, hyphens, and apostrophes
+    if (value === '' || /^[a-zA-Z\s'-]*$/.test(value)) {
+      setFormData({ ...formData, firstName: value });
+      if (error) setError('');
+    }
+  };
+
+  // Handle last name input - only letters and spaces
+  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow letters, spaces, hyphens, and apostrophes
+    if (value === '' || /^[a-zA-Z\s'-]*$/.test(value)) {
+      setFormData({ ...formData, lastName: value });
+      if (error) setError('');
+    }
+  };
+
+  // Handle phone input - only digits, max 10 characters (after +92 prefix)
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Remove any non-digit characters and limit to 10 digits (Pakistani mobile numbers)
+    const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
+    setFormData({ ...formData, phone: digitsOnly });
+    if (error) setError('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Validate email format
+    const emailError = validateEmail(formData.email);
+    if (emailError) {
+      setError(emailError);
+      return;
+    }
+    
+    // Validate password strength
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
     
     // Validate password match
     if (formData.password !== formData.confirmPassword) {
@@ -32,11 +108,18 @@ export const Register = () => {
       return;
     }
 
+    // Validate phone number length (should be 10 digits after +92)
+    if (formData.phone.length < 10) {
+      setError('Phone number must be exactly 10 digits');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Exclude confirmPassword from the request
+      // Exclude confirmPassword from the request and add +92 prefix to phone
       const { confirmPassword, ...registerData } = formData;
+      registerData.phone = `+92${registerData.phone}`;
       await authApi.register(registerData);
       setSuccess(true);
       setTimeout(() => {
@@ -133,10 +216,7 @@ export const Register = () => {
                   <Input
                     required
                     value={formData.firstName}
-                    onChange={(e) => {
-                      setFormData({ ...formData, firstName: e.target.value });
-                      if (error) setError('');
-                    }}
+                    onChange={handleFirstNameChange}
                     placeholder="First Name"
                     className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                   />
@@ -147,10 +227,7 @@ export const Register = () => {
                   <Input
                     required
                     value={formData.lastName}
-                    onChange={(e) => {
-                      setFormData({ ...formData, lastName: e.target.value });
-                      if (error) setError('');
-                    }}
+                    onChange={handleLastNameChange}
                     placeholder="Last Name"
                     className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                   />
@@ -167,24 +244,41 @@ export const Register = () => {
                     setFormData({ ...formData, email: e.target.value });
                     if (error) setError('');
                   }}
-                  placeholder="Enter Your Email"
-                  className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
+                  placeholder="example@domain.com"
+                  className={`h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 ${
+                    formData.email && validateEmail(formData.email) 
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                      : ''
+                  }`}
                 />
+                {formData.email && validateEmail(formData.email) && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {validateEmail(formData.email)}
+                  </p>
+                )}
+                {formData.email && !validateEmail(formData.email) && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Valid email format required (e.g., user@example.com)
+                  </p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
-                <Input
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={(e) => {
-                    setFormData({ ...formData, phone: e.target.value });
-                    if (error) setError('');
-                  }}
-                  placeholder="+92 300 1234567"
-                  className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
-                />
+                <div className="flex">
+                  <div className="flex items-center justify-center px-4 h-12 bg-gray-200 border border-r-0 border-gray-300 rounded-l-lg text-gray-600 font-semibold select-none cursor-not-allowed">
+                    +92
+                  </div>
+                  <Input
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={handlePhoneChange}
+                    placeholder="3001234567"
+                    maxLength={10}
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-l-none rounded-r-lg"
+                  />
+                </div>
               </div>
 
               <div>
@@ -214,6 +308,9 @@ export const Register = () => {
                     )}
                   </button>
                 </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Must contain: uppercase, lowercase, digit, and special character
+                </p>
               </div>
 
               <div>
