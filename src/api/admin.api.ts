@@ -131,16 +131,22 @@ interface InstallationEntity {
   installationType: string;
   capacityKw: number;
   location: string;
-  status: 'pending' | 'verified' | 'rejected';
+  status: 'submitted' | 'assigned' | 'in_progress' | 'completed' | 'rejected';
   isActive: boolean;
   registeredAt: string;
   verifiedAt?: string | null;
+  vendorId?: number | null;
   user?: {
     id: number;
     name: string;
     email: string;
     phone?: string | null;
   };
+  vendor?: {
+    id: number;
+    name: string;
+    email: string;
+  } | null;
 }
 
 interface GetInstallationsResponse {
@@ -151,8 +157,19 @@ interface GetInstallationsResponse {
 }
 
 interface UpdateInstallationRequest {
-  status?: 'pending' | 'verified' | 'rejected';
+  status?: 'submitted' | 'assigned' | 'in_progress' | 'completed' | 'rejected';
   isActive?: boolean;
+}
+
+interface AssignVendorRequest {
+  vendorId: number;
+}
+
+interface Vendor {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
 }
 
 export const adminApi = {
@@ -202,6 +219,26 @@ export const adminApi = {
   updateInstallation: async (id: number, data: UpdateInstallationRequest): Promise<InstallationEntity> => {
     const response = await api.patch(`/admin/installations/${id}`, data);
     return response.data;
+  },
+
+  assignVendor: async (id: number, data: AssignVendorRequest): Promise<InstallationEntity> => {
+    const response = await api.patch(`/admin/installations/${id}/assign`, data);
+    return response.data;
+  },
+
+  getVendors: async (): Promise<{ users: Vendor[] }> => {
+    // Use admin users endpoint with a custom filter (if backend supports role filter)
+    // For now, we'll fetch all users and filter on frontend, or create a backend endpoint
+    // This is a temporary solution - backend should ideally have /admin/vendors endpoint
+    const response = await api.get('/admin/users', {
+      params: { limit: 1000 }, // Get all users to filter vendors
+    });
+    // Filter vendors on frontend (assuming role field exists in user object)
+    // Note: This assumes the backend returns role in the user object
+    // In a real scenario, backend should have a dedicated endpoint
+    return {
+      users: (response.data.users || []).filter((user: any) => user.role === 'vendor' || user.role?.toLowerCase() === 'vendor')
+    };
   },
 
   deleteInstallation: async (id: number): Promise<void> => {

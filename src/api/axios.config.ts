@@ -27,7 +27,7 @@ api.interceptors.response.use(
     // Also exclude form submission pages to let components handle errors
     if (error.response?.status === 401) {
       const currentPath = window.location.pathname;
-      const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/admin/login'].includes(currentPath);
+      const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/admin/login', '/vendor/login', '/vendor/register'].includes(currentPath);
       const isFormPage = ['/install-to-earn', '/kyc/documents', '/kyc/info'].includes(currentPath);
       
       // Only redirect if not on auth/form pages and token exists (meaning user was logged in)
@@ -38,7 +38,13 @@ api.interceptors.response.use(
         localStorage.removeItem('userRole');
         localStorage.removeItem('userId');
         // Redirect to appropriate login page based on role
-        window.location.href = userRole === 'admin' ? '/admin/login' : '/login';
+        if (userRole === 'admin') {
+          window.location.href = '/admin/login';
+        } else if (userRole === 'vendor') {
+          window.location.href = '/vendor/login';
+        } else {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);

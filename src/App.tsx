@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/guards/ProtectedRoute";
 import { AdminRoute } from "@/components/guards/AdminRoute";
+import { VendorRoute } from "@/components/guards/VendorRoute";
 
 // Auth pages
 import { Register } from "./pages/auth/Register";
@@ -20,6 +21,7 @@ import { KYCStatus } from "./pages/user/KYCStatus";
 import { Dashboard } from "./pages/user/Dashboard";
 import { Profile } from "./pages/user/Profile";
 import InstallToEarn from "./pages/user/InstallToEarn";
+import { InstallationStatus } from "./pages/user/InstallationStatus";
 
 // Admin pages
 import { AdminLogin } from "./pages/admin/AdminLogin";
@@ -27,6 +29,14 @@ import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { KYCReview } from "./pages/admin/KYCReview";
 import { KYCDetail } from "./pages/admin/KYCDetail";
 import { InstallationRequests } from "./pages/admin/InstallationRequests";
+
+// Vendor pages
+import { VendorRegister } from "./pages/vendor/VendorRegister";
+import { VendorLogin } from "./pages/vendor/VendorLogin";
+import { VendorForgotPassword } from "./pages/vendor/VendorForgotPassword";
+import { VendorResetPassword } from "./pages/vendor/VendorResetPassword";
+import { VendorDashboard } from "./pages/vendor/VendorDashboard";
+import { VendorInstallations } from "./pages/vendor/VendorInstallations";
 
 // Other pages
 import NotFound from "./pages/NotFound";
@@ -87,6 +97,11 @@ const App = () => {
               <InstallToEarn />
             </ProtectedRoute>
           } />
+          <Route path="/installation-status" element={
+            <ProtectedRoute>
+              <InstallationStatus />
+            </ProtectedRoute>
+          } />
 
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -109,6 +124,22 @@ const App = () => {
             <AdminRoute>
               <InstallationRequests />
             </AdminRoute>
+          } />
+
+          {/* Vendor Routes */}
+          <Route path="/vendor/register" element={<VendorRegister />} />
+          <Route path="/vendor/login" element={<VendorLogin />} />
+          <Route path="/vendor/forgot-password" element={<VendorForgotPassword />} />
+          <Route path="/vendor/reset-password" element={<VendorResetPassword />} />
+          <Route path="/vendor/dashboard" element={
+            <VendorRoute>
+              <VendorDashboard />
+            </VendorRoute>
+          } />
+          <Route path="/vendor/installations" element={
+            <VendorRoute>
+              <VendorInstallations />
+            </VendorRoute>
           } />
 
           {/* Default Routes */}

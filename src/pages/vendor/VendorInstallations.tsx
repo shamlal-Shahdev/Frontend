@@ -1,28 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminApi } from '@/api/admin.api';
+import { vendorApi } from '@/api/vendor.api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { 
   ArrowLeft, 
   CheckCircle, 
-  XCircle, 
-  Clock,
-  Trash2,
+  Clock, 
+  Activity,
   Eye,
-  UserPlus,
   Package,
-  Activity
+  XCircle
 } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface InstallationEntity {
   id: number;
@@ -35,28 +25,15 @@ interface InstallationEntity {
   isActive: boolean;
   registeredAt: string;
   verifiedAt?: string | null;
-  vendorId?: number | null;
   user?: {
     id: number;
     name: string;
     email: string;
     phone?: string | null;
   };
-  vendor?: {
-    id: number;
-    name: string;
-    email: string;
-  } | null;
 }
 
-interface Vendor {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-}
-
-export const InstallationRequests = () => {
+export const VendorInstallations = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [installations, setInstallations] = useState<InstallationEntity[]>([]);
@@ -66,50 +43,39 @@ export const InstallationRequests = () => {
   const [error, setError] = useState('');
   const [selectedInstallation, setSelectedInstallation] = useState<InstallationEntity | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [loadingVendors, setLoadingVendors] = useState(false);
-  const [selectedVendorId, setSelectedVendorId] = useState<string>('');
-  const [assigning, setAssigning] = useState(false);
+  const [updating, setUpdating] = useState<number | null>(null);
 
   useEffect(() => {
     loadInstallations();
-    loadVendors();
   }, [page]);
 
   const loadInstallations = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await adminApi.getInstallations(page, limit);
+      const response = await vendorApi.getInstallations(page, limit);
       setInstallations(response.data || []);
       setTotal(response.total || 0);
     } catch (err: any) {
-      console.error('Failed to load installation requests', err);
-      setError(err.response?.data?.message || 'Failed to load installation requests');
+      console.error('Failed to load installations', err);
+      setError(err.response?.data?.message || 'Failed to load installations');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadVendors = async () => {
-    setLoadingVendors(true);
-    try {
-      const response = await adminApi.getVendors();
-      setVendors(response.users || []);
-    } catch (err: any) {
-      console.error('Failed to load vendors', err);
-    } finally {
-      setLoadingVendors(false);
-    }
-  };
-
-  const handleStatusUpdate = async (id: number, status: 'submitted' | 'assigned' | 'in_progress' | 'completed' | 'rejected') => {
-    if (!confirm(`Are you sure you want to update this installation status to ${status.replace('_', ' ')}?`)) {
+  const handleStatusUpdate = async (id: number, status: 'in_progress' | 'completed' | 'rejected') => {
+    const statusMessage = status === 'rejected' 
+      ? 'REJECT this installation? This action cannot be undone.' 
+      : `update this installation status to ${status.replace('_', ' ')}?`;
+    
+    if (!confirm(`Are you sure you want to ${statusMessage}`)) {
       return;
     }
 
+    setUpdating(id);
     try {
-      await adminApi.updateInstallation(id, { status });
+      await vendorApi.updateInstallationStatus(id, { status });
       alert(`Installation status updated successfully`);
       loadInstallations();
       if (detailsModalOpen) {
@@ -118,56 +84,15 @@ export const InstallationRequests = () => {
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || `Failed to update installation status`;
       alert(`Error: ${errorMessage}`);
-    }
-  };
-
-  const handleAssignVendor = async (installationId: number) => {
-    if (!selectedVendorId) {
-      alert('Please select a vendor');
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to assign this installation to the selected vendor?`)) {
-      return;
-    }
-
-    setAssigning(true);
-    try {
-      await adminApi.assignVendor(installationId, { vendorId: parseInt(selectedVendorId) });
-      alert('Vendor assigned successfully');
-      setSelectedVendorId('');
-      loadInstallations();
-      if (detailsModalOpen) {
-        setDetailsModalOpen(false);
-      }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to assign vendor';
-      alert(`Error: ${errorMessage}`);
     } finally {
-      setAssigning(false);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this installation request? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      await adminApi.deleteInstallation(id);
-      alert('Installation request deleted successfully');
-      loadInstallations();
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to delete installation request';
-      alert(`Error: ${errorMessage}`);
+      setUpdating(null);
     }
   };
 
   const handleViewDetails = async (installation: InstallationEntity) => {
     try {
-      const fullDetails = await adminApi.getInstallationById(installation.id);
+      const fullDetails = await vendorApi.getInstallationById(installation.id);
       setSelectedInstallation(fullDetails);
-      setSelectedVendorId(fullDetails.vendorId?.toString() || '');
       setDetailsModalOpen(true);
     } catch (err: any) {
       alert('Failed to load installation details');
@@ -207,7 +132,7 @@ export const InstallationRequests = () => {
       case 'rejected':
         return (
           <Badge className="bg-red-100 text-red-800">
-            <XCircle className="w-3 h-3 mr-1" />
+            <CheckCircle className="w-3 h-3 mr-1" />
             Rejected
           </Badge>
         );
@@ -242,8 +167,8 @@ export const InstallationRequests = () => {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Installation Requests</h1>
-          <Button variant="outline" onClick={() => navigate('/admin/dashboard')}>
+          <h1 className="text-3xl font-bold">My Installations</h1>
+          <Button variant="outline" onClick={() => navigate('/vendor/dashboard')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -257,12 +182,12 @@ export const InstallationRequests = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>All Installation Requests ({total})</CardTitle>
+            <CardTitle>Assigned Installations ({total})</CardTitle>
           </CardHeader>
           <CardContent>
             {installations.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                No installation requests found
+                No installations assigned yet
               </div>
             ) : (
               <>
@@ -272,12 +197,11 @@ export const InstallationRequests = () => {
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 px-4 font-semibold">ID</th>
                         <th className="text-left py-3 px-4 font-semibold">Name</th>
-                        <th className="text-left py-3 px-4 font-semibold">User</th>
-                        <th className="text-left py-3 px-4 font-semibold">Capacity (kWh)</th>
+                        <th className="text-left py-3 px-4 font-semibold">Customer</th>
+                        <th className="text-left py-3 px-4 font-semibold">Capacity (kW)</th>
                         <th className="text-left py-3 px-4 font-semibold">Location</th>
                         <th className="text-left py-3 px-4 font-semibold">Status</th>
-                        <th className="text-left py-3 px-4 font-semibold">Vendor</th>
-                        <th className="text-left py-3 px-4 font-semibold">Submitted</th>
+                        <th className="text-left py-3 px-4 font-semibold">Assigned</th>
                         <th className="text-left py-3 px-4 font-semibold">Actions</th>
                       </tr>
                     </thead>
@@ -292,23 +216,13 @@ export const InstallationRequests = () => {
                               <div className="text-sm text-gray-500">{installation.user?.email || ''}</div>
                             </div>
                           </td>
-                          <td className="py-3 px-4">{installation.capacityKw} kWh</td>
+                          <td className="py-3 px-4">{installation.capacityKw} kW</td>
                           <td className="py-3 px-4">
                             <div className="max-w-xs truncate" title={installation.location}>
                               {installation.location}
                             </div>
                           </td>
                           <td className="py-3 px-4">{getStatusBadge(installation.status)}</td>
-                          <td className="py-3 px-4">
-                            {installation.vendor ? (
-                              <div>
-                                <div className="font-medium text-sm">{installation.vendor.name}</div>
-                                <div className="text-xs text-gray-500">{installation.vendor.email}</div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400 text-sm">Not assigned</span>
-                            )}
-                          </td>
                           <td className="py-3 px-4 text-sm text-gray-500">
                             {formatDate(installation.registeredAt)}
                           </td>
@@ -321,6 +235,78 @@ export const InstallationRequests = () => {
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
+                              {installation.status === 'assigned' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-orange-600 hover:text-orange-700"
+                                  onClick={() => handleStatusUpdate(installation.id, 'in_progress')}
+                                  disabled={updating === installation.id}
+                                >
+                                  {updating === installation.id ? (
+                                    <Clock className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Activity className="w-4 h-4" />
+                                      <span className="ml-1">Start</span>
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                              {installation.status === 'in_progress' && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-green-600 hover:text-green-700"
+                                    onClick={() => handleStatusUpdate(installation.id, 'completed')}
+                                    disabled={updating === installation.id}
+                                  >
+                                    {updating === installation.id ? (
+                                      <Clock className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <CheckCircle className="w-4 h-4" />
+                                        <span className="ml-1">Complete</span>
+                                      </>
+                                    )}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => handleStatusUpdate(installation.id, 'rejected')}
+                                    disabled={updating === installation.id}
+                                  >
+                                    {updating === installation.id ? (
+                                      <Clock className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <XCircle className="w-4 h-4" />
+                                        <span className="ml-1">Reject</span>
+                                      </>
+                                    )}
+                                  </Button>
+                                </>
+                              )}
+                              {(installation.status === 'submitted' || installation.status === 'assigned') && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700"
+                                  onClick={() => handleStatusUpdate(installation.id, 'rejected')}
+                                  disabled={updating === installation.id}
+                                >
+                                  {updating === installation.id ? (
+                                    <Clock className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <XCircle className="w-4 h-4" />
+                                      <span className="ml-1">Reject</span>
+                                    </>
+                                  )}
+                                </Button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -333,7 +319,7 @@ export const InstallationRequests = () => {
                 {total > limit && (
                   <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
                     <div className="text-sm text-gray-500">
-                      Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} requests
+                      Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} installations
                     </div>
                     <div className="flex gap-2">
                       <Button
@@ -367,7 +353,7 @@ export const InstallationRequests = () => {
           <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle>Installation Request Details</CardTitle>
+                <CardTitle>Installation Details</CardTitle>
                 <Button variant="outline" size="sm" onClick={() => setDetailsModalOpen(false)}>
                   ✕
                 </Button>
@@ -393,11 +379,7 @@ export const InstallationRequests = () => {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-500">Capacity</label>
-                  <p className="mt-1">{selectedInstallation.capacityKw} kWh</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-500">Active</label>
-                  <p className="mt-1">{selectedInstallation.isActive ? 'Yes' : 'No'}</p>
+                  <p className="mt-1">{selectedInstallation.capacityKw} kW</p>
                 </div>
               </div>
 
@@ -407,55 +389,7 @@ export const InstallationRequests = () => {
               </div>
 
               <div className="border-t pt-4">
-                <h3 className="font-semibold mb-3">Vendor Information</h3>
-                {selectedInstallation.vendor ? (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-semibold text-gray-500">Vendor Name</label>
-                      <p className="mt-1">{selectedInstallation.vendor.name}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-gray-500">Vendor Email</label>
-                      <p className="mt-1">{selectedInstallation.vendor.email}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <p className="text-sm text-yellow-800 mb-3">No vendor assigned yet</p>
-                    <div className="flex gap-2">
-                      <Select value={selectedVendorId} onValueChange={setSelectedVendorId} disabled={loadingVendors || assigning}>
-                        <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="Select a vendor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {vendors.map((vendor) => (
-                            <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                              {vendor.name} ({vendor.email})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        onClick={() => handleAssignVendor(selectedInstallation.id)}
-                        disabled={!selectedVendorId || assigning || loadingVendors}
-                        className="bg-orange-500 hover:bg-orange-600"
-                      >
-                        {assigning ? (
-                          <Clock className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Assign
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="border-t pt-4">
-                <h3 className="font-semibold mb-3">User Information</h3>
+                <h3 className="font-semibold mb-3">Customer Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-500">Name</label>
@@ -488,69 +422,109 @@ export const InstallationRequests = () => {
                 </div>
               </div>
 
-              <div className="border-t pt-4">
-                <h3 className="font-semibold mb-3">Actions</h3>
-                <div className="flex gap-2 flex-wrap">
-                  {selectedInstallation.status === 'submitted' && (
-                    <>
-                      <Button
-                        variant="outline"
-                        className="text-green-600 hover:text-green-700"
-                        onClick={() => {
-                          handleStatusUpdate(selectedInstallation.id, 'assigned');
-                          setDetailsModalOpen(false);
-                        }}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Approve
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => {
-                          handleStatusUpdate(selectedInstallation.id, 'rejected');
-                          setDetailsModalOpen(false);
-                        }}
-                      >
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Reject
-                      </Button>
-                    </>
-                  )}
-                  {!selectedInstallation.vendor && selectedInstallation.status !== 'rejected' && selectedInstallation.status !== 'completed' && (
-                    <div className="w-full mt-2">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Vendor</label>
-                      <div className="flex gap-2">
-                        <Select value={selectedVendorId} onValueChange={setSelectedVendorId} disabled={loadingVendors || assigning}>
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Select a vendor" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {vendors.map((vendor) => (
-                              <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                                {vendor.name} ({vendor.email})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          onClick={() => handleAssignVendor(selectedInstallation.id)}
-                          disabled={!selectedVendorId || assigning || loadingVendors}
-                          className="bg-orange-500 hover:bg-orange-600"
-                        >
-                          {assigning ? (
-                            <Clock className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <>
-                              <UserPlus className="w-4 h-4 mr-2" />
-                              Assign Vendor
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+              {/* Action Buttons */}
+              {selectedInstallation.status === 'assigned' && (
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button
+                    className="flex-1 bg-orange-500 hover:bg-orange-600"
+                    onClick={() => handleStatusUpdate(selectedInstallation.id, 'in_progress')}
+                    disabled={updating === selectedInstallation.id}
+                  >
+                    {updating === selectedInstallation.id ? (
+                      <>
+                        <Clock className="w-4 h-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <Activity className="w-4 h-4 mr-2" />
+                        Start Installation
+                      </>
+                    )}
+                  </Button>
                 </div>
-              </div>
+              )}
+
+              {selectedInstallation.status === 'in_progress' && (
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button
+                    className="flex-1 bg-green-500 hover:bg-green-600"
+                    onClick={() => handleStatusUpdate(selectedInstallation.id, 'completed')}
+                    disabled={updating === selectedInstallation.id}
+                  >
+                    {updating === selectedInstallation.id ? (
+                      <>
+                        <Clock className="w-4 h-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Mark as Completed
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => handleStatusUpdate(selectedInstallation.id, 'rejected')}
+                    disabled={updating === selectedInstallation.id}
+                  >
+                    {updating === selectedInstallation.id ? (
+                      <>
+                        <Clock className="w-4 h-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Reject Installation
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+              {(selectedInstallation.status === 'submitted' || selectedInstallation.status === 'assigned') && (
+                <div className="flex gap-2 pt-4 border-t">
+                  {selectedInstallation.status === 'assigned' && (
+                    <Button
+                      className="flex-1 bg-orange-500 hover:bg-orange-600"
+                      onClick={() => handleStatusUpdate(selectedInstallation.id, 'in_progress')}
+                      disabled={updating === selectedInstallation.id}
+                    >
+                      {updating === selectedInstallation.id ? (
+                        <>
+                          <Clock className="w-4 h-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <Activity className="w-4 h-4 mr-2" />
+                          Start Installation
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => handleStatusUpdate(selectedInstallation.id, 'rejected')}
+                    disabled={updating === selectedInstallation.id}
+                  >
+                    {updating === selectedInstallation.id ? (
+                      <>
+                        <Clock className="w-4 h-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Reject Installation
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -558,4 +532,5 @@ export const InstallationRequests = () => {
     </div>
   );
 };
+
 

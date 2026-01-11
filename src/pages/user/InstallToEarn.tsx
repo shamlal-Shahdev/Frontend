@@ -1,25 +1,60 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { installationApi } from '@/api/installation.api';
+import { vendorApi } from '@/api/vendor.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+
+interface Vendor {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string | null;
+}
 
 export default function InstallToEarn() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [loadingVendors, setLoadingVendors] = useState(true);
   const [error, setError] = useState('');
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
     capacityKw: '',
+    vendorId: '',
   });
+
+  useEffect(() => {
+    loadVendors();
+  }, []);
+
+  const loadVendors = async () => {
+    try {
+      setLoadingVendors(true);
+      const response = await vendorApi.getVendors(true); // Get only verified vendors
+      setVendors(response.vendors || []);
+    } catch (err: any) {
+      console.error('Failed to load vendors', err);
+      setError('Failed to load vendors. Please refresh the page.');
+    } finally {
+      setLoadingVendors(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,12 +81,19 @@ export default function InstallToEarn() {
       return;
     }
 
+    if (!formData.vendorId) {
+      setError('Please select a vendor');
+      setLoading(false);
+      return;
+    }
+
     try {
       await installationApi.submit({
         name: formData.name.trim(),
         location: formData.location.trim(),
         capacityKw: capacity,
         installationType: 'rooftop_solar',
+        vendorId: parseInt(formData.vendorId, 10),
       });
 
       // Show success message
@@ -65,6 +107,7 @@ export default function InstallToEarn() {
         name: '',
         location: '',
         capacityKw: '',
+        vendorId: '',
       });
 
       // Optionally navigate back to dashboard after 2 seconds
@@ -194,6 +237,39 @@ export default function InstallToEarn() {
                   </p>
                 </div>
 
+                {/* Vendor Selection Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="vendorId">
+                    Select Vendor <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={formData.vendorId}
+                    onValueChange={(value) => {
+                      setFormData({ ...formData, vendorId: value });
+                      setError('');
+                    }}
+                    disabled={loading || loadingVendors || vendors.length === 0}
+                  >
+                    <SelectTrigger id="vendorId">
+                      <SelectValue placeholder={loadingVendors ? 'Loading vendors...' : vendors.length === 0 ? 'No verified vendors available' : 'Select a vendor'} />
+                    </SelectTrigger>
+                    {vendors.length > 0 && (
+                      <SelectContent>
+                        {vendors.map((vendor) => (
+                          <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                            {vendor.name} ({vendor.email})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    )}
+                  </Select>
+                  <p className="text-sm text-gray-500">
+                    {vendors.length === 0 && !loadingVendors
+                      ? 'No verified vendors available. Please contact support.'
+                      : 'Select a verified vendor for your installation'}
+                  </p>
+                </div>
+
                 {/* Submit Button */}
                 <div className="pt-4">
                   <Button
@@ -235,7 +311,7 @@ export default function InstallToEarn() {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 mt-0.5 text-green-600 flex-shrink-0" />
-                  <span>A vendor will be assigned for the installation</span>
+                  <span>Your selected vendor will receive the installation request</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 mt-0.5 text-green-600 flex-shrink-0" />
