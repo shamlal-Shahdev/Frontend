@@ -50,6 +50,16 @@ export const Profile = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    
+    // Validate phone number if provided
+    if (formData.phone && formData.phone.trim() !== '') {
+      const phoneDigits = formData.phone.replace(/\D/g, '');
+      if (phoneDigits.length !== 11) {
+        setError('Phone number must be exactly 11 digits');
+        return;
+      }
+    }
+    
     setUpdating(true);
 
     try {
@@ -224,18 +234,20 @@ export const Profile = () => {
                     <span className="ml-auto text-xs text-gray-500">(Optional)</span>
                   </label>
                   <Input
-                    type="text"
+                    type="tel"
                     value={formData.phone}
                     onChange={(e) => {
-                      setFormData({ ...formData, phone: e.target.value });
+                      const value = e.target.value;
+                      // Only allow digits and limit to 11 digits
+                      const digitsOnly = value.replace(/\D/g, '').slice(0, 11);
+                      setFormData({ ...formData, phone: digitsOnly });
                       setError('');
                     }}
-                    placeholder="+923001234567 or 03358235529"
-                    minLength={3}
-                    maxLength={20}
+                    placeholder="03001234567"
+                    maxLength={11}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Optional - Any format accepted (3-20 characters)
+                    Optional - Must be exactly 11 digits (e.g., 03001234567)
                   </p>
                 </div>
 

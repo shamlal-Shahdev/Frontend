@@ -385,7 +385,7 @@ export const authApi = {
     }
   },
 
-  verifyEmail: async (token: string): Promise<{ message: string }> => {
+  verifyEmail: async (token: string): Promise<{ message: string; redirectUrl: string; role: string }> => {
     const response = await fetch(`${client.API_URL}/api/v1/auth/verify?token=${token}`, {
       method: 'GET',
       headers: client.headers,

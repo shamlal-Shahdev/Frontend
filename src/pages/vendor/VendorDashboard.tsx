@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { vendorApi } from '@/api/vendor.api';
+import { api } from '@/api/axios.config';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -10,12 +11,14 @@ import {
   XCircle,
   LogOut,
   Zap,
-  Activity
+  Activity,
+  User
 } from 'lucide-react';
 
 export const VendorDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [companyName, setCompanyName] = useState<string | null>(null);
   const [stats, setStats] = useState({
     total: 0,
     assigned: 0,
@@ -24,8 +27,18 @@ export const VendorDashboard = () => {
   });
 
   useEffect(() => {
+    loadProfile();
     loadStats();
   }, []);
+
+  const loadProfile = async () => {
+    try {
+      const response = await api.get('/auth/me');
+      setCompanyName(response.data.companyName || null);
+    } catch (err) {
+      console.error('Failed to load vendor profile', err);
+    }
+  };
 
   const loadStats = async () => {
     try {
@@ -74,6 +87,13 @@ export const VendorDashboard = () => {
           </div>
           <div className="flex items-center gap-4">
             <Button 
+              variant="outline"
+              onClick={() => navigate('/vendor/profile')}
+            >
+              <User className="w-4 h-4 mr-2" />
+              Profile
+            </Button>
+            <Button 
               onClick={() => navigate('/vendor/installations')}
               className="bg-orange-500 hover:bg-orange-600"
             >
@@ -92,7 +112,9 @@ export const VendorDashboard = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Vendor Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {companyName ? `${companyName} Dashboard` : 'Vendor Dashboard'}
+          </h1>
           <p className="text-gray-500 mt-1">Manage your assigned installations and track progress.</p>
         </div>
 

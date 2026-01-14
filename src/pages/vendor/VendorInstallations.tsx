@@ -211,10 +211,7 @@ export const VendorInstallations = () => {
                           <td className="py-3 px-4">{installation.id}</td>
                           <td className="py-3 px-4 font-medium">{installation.name}</td>
                           <td className="py-3 px-4">
-                            <div>
-                              <div className="font-medium">{installation.user?.name || 'N/A'}</div>
-                              <div className="text-sm text-gray-500">{installation.user?.email || ''}</div>
-                            </div>
+                            <div className="font-medium">{installation.user?.name || 'N/A'}</div>
                           </td>
                           <td className="py-3 px-4">{installation.capacityKw} kW</td>
                           <td className="py-3 px-4">
@@ -289,7 +286,43 @@ export const VendorInstallations = () => {
                                   </Button>
                                 </>
                               )}
-                              {(installation.status === 'submitted' || installation.status === 'assigned') && (
+                              {installation.status === 'submitted' && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-green-600 hover:text-green-700"
+                                    onClick={() => handleStatusUpdate(installation.id, 'in_progress')}
+                                    disabled={updating === installation.id}
+                                  >
+                                    {updating === installation.id ? (
+                                      <Clock className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <CheckCircle className="w-4 h-4" />
+                                        <span className="ml-1">Accept</span>
+                                      </>
+                                    )}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => handleStatusUpdate(installation.id, 'rejected')}
+                                    disabled={updating === installation.id}
+                                  >
+                                    {updating === installation.id ? (
+                                      <Clock className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <XCircle className="w-4 h-4" />
+                                        <span className="ml-1">Reject</span>
+                                      </>
+                                    )}
+                                  </Button>
+                                </>
+                              )}
+                              {installation.status === 'assigned' && (
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -396,10 +429,6 @@ export const VendorInstallations = () => {
                     <p className="mt-1">{selectedInstallation.user?.name || 'N/A'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-500">Email</label>
-                    <p className="mt-1">{selectedInstallation.user?.email || 'N/A'}</p>
-                  </div>
-                  <div>
                     <label className="text-sm font-semibold text-gray-500">Phone</label>
                     <p className="mt-1">{selectedInstallation.user?.phone || 'N/A'}</p>
                   </div>
@@ -486,10 +515,35 @@ export const VendorInstallations = () => {
               )}
               {(selectedInstallation.status === 'submitted' || selectedInstallation.status === 'assigned') && (
                 <div className="flex gap-2 pt-4 border-t">
+                  {selectedInstallation.status === 'submitted' && (
+                    <Button
+                      className="flex-1 bg-green-500 hover:bg-green-600"
+                      onClick={() => {
+                        handleStatusUpdate(selectedInstallation.id, 'in_progress');
+                        setDetailsModalOpen(false);
+                      }}
+                      disabled={updating === selectedInstallation.id}
+                    >
+                      {updating === selectedInstallation.id ? (
+                        <>
+                          <Clock className="w-4 h-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Accept Installation
+                        </>
+                      )}
+                    </Button>
+                  )}
                   {selectedInstallation.status === 'assigned' && (
                     <Button
                       className="flex-1 bg-orange-500 hover:bg-orange-600"
-                      onClick={() => handleStatusUpdate(selectedInstallation.id, 'in_progress')}
+                      onClick={() => {
+                        handleStatusUpdate(selectedInstallation.id, 'in_progress');
+                        setDetailsModalOpen(false);
+                      }}
                       disabled={updating === selectedInstallation.id}
                     >
                       {updating === selectedInstallation.id ? (
@@ -508,7 +562,10 @@ export const VendorInstallations = () => {
                   <Button
                     variant="destructive"
                     className="flex-1"
-                    onClick={() => handleStatusUpdate(selectedInstallation.id, 'rejected')}
+                    onClick={() => {
+                      handleStatusUpdate(selectedInstallation.id, 'rejected');
+                      setDetailsModalOpen(false);
+                    }}
                     disabled={updating === selectedInstallation.id}
                   >
                     {updating === selectedInstallation.id ? (

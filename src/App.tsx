@@ -37,6 +37,7 @@ import { VendorForgotPassword } from "./pages/vendor/VendorForgotPassword";
 import { VendorResetPassword } from "./pages/vendor/VendorResetPassword";
 import { VendorDashboard } from "./pages/vendor/VendorDashboard";
 import { VendorInstallations } from "./pages/vendor/VendorInstallations";
+import { VendorProfile } from "./pages/vendor/VendorProfile";
 
 // Other pages
 import NotFound from "./pages/NotFound";
@@ -139,6 +140,11 @@ const App = () => {
           <Route path="/vendor/installations" element={
             <VendorRoute>
               <VendorInstallations />
+            </VendorRoute>
+          } />
+          <Route path="/vendor/profile" element={
+            <VendorRoute>
+              <VendorProfile />
             </VendorRoute>
           } />
 

@@ -103,65 +103,6 @@ export const InstallationRequests = () => {
     }
   };
 
-  const handleStatusUpdate = async (id: number, status: 'submitted' | 'assigned' | 'in_progress' | 'completed' | 'rejected') => {
-    if (!confirm(`Are you sure you want to update this installation status to ${status.replace('_', ' ')}?`)) {
-      return;
-    }
-
-    try {
-      await adminApi.updateInstallation(id, { status });
-      alert(`Installation status updated successfully`);
-      loadInstallations();
-      if (detailsModalOpen) {
-        setDetailsModalOpen(false);
-      }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || `Failed to update installation status`;
-      alert(`Error: ${errorMessage}`);
-    }
-  };
-
-  const handleAssignVendor = async (installationId: number) => {
-    if (!selectedVendorId) {
-      alert('Please select a vendor');
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to assign this installation to the selected vendor?`)) {
-      return;
-    }
-
-    setAssigning(true);
-    try {
-      await adminApi.assignVendor(installationId, { vendorId: parseInt(selectedVendorId) });
-      alert('Vendor assigned successfully');
-      setSelectedVendorId('');
-      loadInstallations();
-      if (detailsModalOpen) {
-        setDetailsModalOpen(false);
-      }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to assign vendor';
-      alert(`Error: ${errorMessage}`);
-    } finally {
-      setAssigning(false);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this installation request? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      await adminApi.deleteInstallation(id);
-      alert('Installation request deleted successfully');
-      loadInstallations();
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to delete installation request';
-      alert(`Error: ${errorMessage}`);
-    }
-  };
 
   const handleViewDetails = async (installation: InstallationEntity) => {
     try {
@@ -405,55 +346,6 @@ export const InstallationRequests = () => {
                 <label className="text-sm font-semibold text-gray-500">Location</label>
                 <p className="mt-1">{selectedInstallation.location}</p>
               </div>
-
-              <div className="border-t pt-4">
-                <h3 className="font-semibold mb-3">Vendor Information</h3>
-                {selectedInstallation.vendor ? (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-semibold text-gray-500">Vendor Name</label>
-                      <p className="mt-1">{selectedInstallation.vendor.name}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-gray-500">Vendor Email</label>
-                      <p className="mt-1">{selectedInstallation.vendor.email}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <p className="text-sm text-yellow-800 mb-3">No vendor assigned yet</p>
-                    <div className="flex gap-2">
-                      <Select value={selectedVendorId} onValueChange={setSelectedVendorId} disabled={loadingVendors || assigning}>
-                        <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="Select a vendor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {vendors.map((vendor) => (
-                            <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                              {vendor.name} ({vendor.email})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        onClick={() => handleAssignVendor(selectedInstallation.id)}
-                        disabled={!selectedVendorId || assigning || loadingVendors}
-                        className="bg-orange-500 hover:bg-orange-600"
-                      >
-                        {assigning ? (
-                          <Clock className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Assign
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-3">User Information</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -483,70 +375,6 @@ export const InstallationRequests = () => {
                     <div>
                       <label className="text-sm font-semibold text-gray-500">Completed</label>
                       <p className="mt-1">{formatDate(selectedInstallation.verifiedAt)}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <h3 className="font-semibold mb-3">Actions</h3>
-                <div className="flex gap-2 flex-wrap">
-                  {selectedInstallation.status === 'submitted' && (
-                    <>
-                      <Button
-                        variant="outline"
-                        className="text-green-600 hover:text-green-700"
-                        onClick={() => {
-                          handleStatusUpdate(selectedInstallation.id, 'assigned');
-                          setDetailsModalOpen(false);
-                        }}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Approve
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => {
-                          handleStatusUpdate(selectedInstallation.id, 'rejected');
-                          setDetailsModalOpen(false);
-                        }}
-                      >
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Reject
-                      </Button>
-                    </>
-                  )}
-                  {!selectedInstallation.vendor && selectedInstallation.status !== 'rejected' && selectedInstallation.status !== 'completed' && (
-                    <div className="w-full mt-2">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Vendor</label>
-                      <div className="flex gap-2">
-                        <Select value={selectedVendorId} onValueChange={setSelectedVendorId} disabled={loadingVendors || assigning}>
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Select a vendor" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {vendors.map((vendor) => (
-                              <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                                {vendor.name} ({vendor.email})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          onClick={() => handleAssignVendor(selectedInstallation.id)}
-                          disabled={!selectedVendorId || assigning || loadingVendors}
-                          className="bg-orange-500 hover:bg-orange-600"
-                        >
-                          {assigning ? (
-                            <Clock className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <>
-                              <UserPlus className="w-4 h-4 mr-2" />
-                              Assign Vendor
-                            </>
-                          )}
-                        </Button>
-                      </div>
                     </div>
                   )}
                 </div>

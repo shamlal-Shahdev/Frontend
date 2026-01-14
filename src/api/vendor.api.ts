@@ -5,6 +5,7 @@ interface VendorRegisterRequest {
   lastName: string;
   email: string;
   phone: string;
+  companyName: string;
   password: string;
 }
 
@@ -74,6 +75,7 @@ interface Vendor {
   name: string;
   email: string;
   phone?: string | null;
+  companyName?: string | null;
   isVerified: boolean;
   role: string;
 }

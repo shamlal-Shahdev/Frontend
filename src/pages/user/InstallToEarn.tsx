@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -16,13 +17,34 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { CheckCircle, AlertCircle, ArrowLeft, Package, Activity, Clock, XCircle } from 'lucide-react';
 
 interface Vendor {
   id: number;
   name: string;
   email: string;
   phone?: string | null;
+  companyName?: string | null;
+}
+
+interface Installation {
+  id: number;
+  userId: number;
+  name: string;
+  installationType: string;
+  capacityKw: number;
+  location: string;
+  status: 'submitted' | 'assigned' | 'in_progress' | 'completed' | 'rejected';
+  isActive: boolean;
+  registeredAt: string;
+  verifiedAt?: string | null;
+  vendorId?: number | null;
+  vendor?: {
+    id: number;
+    name: string;
+    email: string;
+    companyName?: string | null;
+  } | null;
 }
 
 export default function InstallToEarn() {
@@ -30,8 +52,10 @@ export default function InstallToEarn() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [loadingVendors, setLoadingVendors] = useState(true);
+  const [checkingInstallations, setCheckingInstallations] = useState(true);
   const [error, setError] = useState('');
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [existingInstallation, setExistingInstallation] = useState<Installation | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -40,8 +64,26 @@ export default function InstallToEarn() {
   });
 
   useEffect(() => {
+    checkExistingInstallation();
     loadVendors();
   }, []);
+
+  const checkExistingInstallation = async () => {
+    try {
+      setCheckingInstallations(true);
+      const installations = await installationApi.getUserInstallations();
+      if (installations && installations.length > 0) {
+        // Get the most recent installation (first one in the array)
+        const latest = installations[0];
+        setExistingInstallation(latest);
+      }
+    } catch (err: any) {
+      console.error('Failed to check existing installations', err);
+      // If error, just show the form
+    } finally {
+      setCheckingInstallations(false);
+    }
+  };
 
   const loadVendors = async () => {
     try {
@@ -50,7 +92,15 @@ export default function InstallToEarn() {
       setVendors(response.vendors || []);
     } catch (err: any) {
       console.error('Failed to load vendors', err);
-      setError('Failed to load vendors. Please refresh the page.');
+      if (err.response?.status === 401) {
+        setError('Your session has expired. Please log in again.');
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setError('Failed to load vendors. Please refresh the page.');
+      }
     } finally {
       setLoadingVendors(false);
     }
@@ -96,24 +146,12 @@ export default function InstallToEarn() {
         vendorId: parseInt(formData.vendorId, 10),
       });
 
-      // Show success message
+      // Refresh the page to show the status
+      await checkExistingInstallation();
       toast({
         title: 'Success!',
-        description: 'Your request has been submitted. Our team will contact you.',
+        description: 'Your request has been submitted. View the status below.',
       });
-
-      // Reset form
-      setFormData({
-        name: '',
-        location: '',
-        capacityKw: '',
-        vendorId: '',
-      });
-
-      // Optionally navigate back to dashboard after 2 seconds
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
     } catch (err: any) {
       console.error('Installation submission error:', err);
       const errorMessage =
@@ -134,6 +172,164 @@ export default function InstallToEarn() {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return (
+          <Badge className="bg-green-100 text-green-800">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Completed
+          </Badge>
+        );
+      case 'in_progress':
+        return (
+          <Badge className="bg-orange-100 text-orange-800">
+            <Activity className="w-3 h-3 mr-1" />
+            In Progress
+          </Badge>
+        );
+      case 'assigned':
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">
+            <Clock className="w-3 h-3 mr-1" />
+            Assigned
+          </Badge>
+        );
+      case 'submitted':
+        return (
+          <Badge className="bg-blue-100 text-blue-800">
+            <Package className="w-3 h-3 mr-1" />
+            Submitted
+          </Badge>
+        );
+      case 'rejected':
+        return (
+          <Badge className="bg-red-100 text-red-800">
+            <XCircle className="w-3 h-3 mr-1" />
+            Rejected
+          </Badge>
+        );
+      default:
+        return (
+          <Badge className="bg-gray-100 text-gray-800">
+            {status}
+          </Badge>
+        );
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  // Show loading state while checking for existing installations
+  if (checkingInstallations) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <nav className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
+            </div>
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </div>
+        </nav>
+        <div className="container mx-auto py-8 px-4">
+          <div className="max-w-2xl mx-auto">
+            <Card>
+              <CardContent className="py-12 text-center">
+                <div className="text-lg">Checking installation status...</div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show status if installation exists
+  if (existingInstallation) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Top Navigation */}
+        <nav className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
+            </div>
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <div className="container mx-auto py-8 px-4">
+          <div className="max-w-2xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Installation Status</CardTitle>
+                <CardDescription>
+                  Your installation request has been submitted. Track its progress here.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-500">Installation Name</Label>
+                    <p className="mt-1 font-medium">{existingInstallation.name}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-500">Status</Label>
+                    <div className="mt-1">{getStatusBadge(existingInstallation.status)}</div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-500">Capacity</Label>
+                    <p className="mt-1">{existingInstallation.capacityKw} kW</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-500">Submitted On</Label>
+                    <p className="mt-1 text-sm">{formatDate(existingInstallation.registeredAt)}</p>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold text-gray-500">Location</Label>
+                  <p className="mt-1">{existingInstallation.location}</p>
+                </div>
+                {existingInstallation.vendor && (
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-500">Assigned Vendor</Label>
+                    <p className="mt-1">{existingInstallation.vendor.companyName || existingInstallation.vendor.name}</p>
+                  </div>
+                )}
+                <div className="pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => navigate('/installation-status')}
+                  >
+                    View All Installations
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show form if no installation exists
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation */}
@@ -255,9 +451,9 @@ export default function InstallToEarn() {
                     </SelectTrigger>
                     {vendors.length > 0 && (
                       <SelectContent>
-                        {vendors.map((vendor) => (
+                        {                        vendors.map((vendor) => (
                           <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                            {vendor.name} ({vendor.email})
+                            {vendor.companyName || vendor.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

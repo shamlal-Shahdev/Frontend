@@ -20,6 +20,7 @@ export const VendorRegister = () => {
     password: '',
     confirmPassword: '',
     phone: '',
+    companyName: '',
   });
 
   const validateEmail = (email: string): string | null => {
@@ -86,6 +87,11 @@ export const VendorRegister = () => {
 
     if (formData.phone.length < 10) {
       setError('Phone number must be exactly 10 digits');
+      return;
+    }
+
+    if (!formData.companyName.trim()) {
+      setError('Company name is required');
       return;
     }
 
@@ -235,6 +241,20 @@ export const VendorRegister = () => {
                     className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-l-none rounded-r-lg"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Solar Company Name</label>
+                <Input
+                  required
+                  value={formData.companyName}
+                  onChange={(e) => {
+                    setFormData({ ...formData, companyName: e.target.value });
+                    if (error) setError('');
+                  }}
+                  placeholder="e.g., Solar Energy Solutions"
+                  className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                />
               </div>
 
               <div>

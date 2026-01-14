@@ -61,5 +61,10 @@ export const installationApi = {
   cancel: async (id: number): Promise<void> => {
     await api.delete(`/installations/${id}`);
   },
+
+  getUserInstallations: async (): Promise<InstallationResponse[]> => {
+    const response = await api.get('/installations/user/installations');
+    return response.data;
+  },
 };
 

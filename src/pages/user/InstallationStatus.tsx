@@ -48,6 +48,7 @@ interface InstallationEntity {
     id: number;
     name: string;
     email: string;
+    companyName?: string | null;
   } | null;
 }
 
@@ -251,9 +252,8 @@ export const InstallationStatus = () => {
                             <td className="py-3 px-4 font-medium">{installation.name}</td>
                             <td className="py-3 px-4">
                               {installation.vendor ? (
-                                <div>
-                                  <div className="font-medium">{installation.vendor.name}</div>
-                                  <div className="text-sm text-gray-500">{installation.vendor.email}</div>
+                                <div className="font-medium">
+                                  {installation.vendor.companyName || installation.vendor.name}
                                 </div>
                               ) : (
                                 <span className="text-gray-400">Not assigned</span>
@@ -279,6 +279,17 @@ export const InstallationStatus = () => {
                                 >
                                   <Trash2 className="w-4 h-4 mr-1" />
                                   Cancel
+                                </Button>
+                              )}
+                              {installation.status === 'rejected' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-green-600 hover:text-green-700"
+                                  onClick={() => navigate('/install-to-earn')}
+                                >
+                                  <Package className="w-4 h-4 mr-1" />
+                                  Resubmit
                                 </Button>
                               )}
                             </td>

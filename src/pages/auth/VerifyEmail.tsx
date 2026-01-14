@@ -31,9 +31,9 @@ const VerifyEmail = () => {
           description: data.message,
         });
 
-        // Redirect to login page after successful verification
+        // Redirect based on user role after successful verification
         setTimeout(() => {
-          navigate('/');
+          navigate(data.redirectUrl || (data.role === 'vendor' ? '/vendor/login' : '/'));
         }, 2000);
 
       } catch (error: any) {
