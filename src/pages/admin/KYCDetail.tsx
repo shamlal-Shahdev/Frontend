@@ -4,7 +4,10 @@ import { adminApi } from '@/api/admin.api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle, XCircle, FileCheck } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, CheckCircle, XCircle, FileCheck, Loader2 } from 'lucide-react';
 
 interface KycEntity {
   id: number;
@@ -39,6 +42,7 @@ interface UserDocumentsResponse {
 
 export const KYCDetail = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { userId } = useParams<{ userId: string }>();
   const [loading, setLoading] = useState(true);
   const [userDetails, setUserDetails] = useState<any>(null);
@@ -49,6 +53,8 @@ export const KYCDetail = () => {
   const [approvalNote, setApprovalNote] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -117,17 +123,30 @@ export const KYCDetail = () => {
   const handleApproveSubmit = async () => {
     if (!userId) return;
 
+    setIsApproving(true);
     setSubmitting(true);
     try {
       await adminApi.approveKyc(parseInt(userId), approvalNote ? { note: approvalNote } : undefined);
-      alert('KYC approved successfully');
+      toast({
+        title: 'Success!',
+        description: 'KYC approved successfully. The user has been notified.',
+        className: 'bg-green-50 border-green-200',
+      });
       setApproveModalOpen(false);
       setApprovalNote('');
-      navigate('/admin/kyc');
+      // Navigate after a short delay to show the toast
+      setTimeout(() => {
+        navigate('/admin/kyc');
+      }, 1500);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to approve KYC';
-      alert(`Error: ${errorMessage}`);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
+      setIsApproving(false);
       setSubmitting(false);
     }
   };
@@ -139,21 +158,38 @@ export const KYCDetail = () => {
 
   const handleRejectSubmit = async () => {
     if (!userId || !rejectionReason.trim()) {
-      alert('Please enter a rejection reason');
+      toast({
+        title: 'Validation Error',
+        description: 'Please enter a rejection reason',
+        variant: 'destructive',
+      });
       return;
     }
 
+    setIsRejecting(true);
     setSubmitting(true);
     try {
       await adminApi.rejectKyc(parseInt(userId), { reason: rejectionReason });
-      alert('KYC rejected successfully. User will be notified to resubmit documents.');
+      toast({
+        title: 'KYC Rejected',
+        description: 'KYC rejected successfully. User will be notified to resubmit documents.',
+        className: 'bg-amber-50 border-amber-200',
+      });
       setRejectModalOpen(false);
       setRejectionReason('');
-      navigate('/admin/kyc');
+      // Navigate after a short delay to show the toast
+      setTimeout(() => {
+        navigate('/admin/kyc');
+      }, 1500);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to reject KYC';
-      alert(`Error: ${errorMessage}`);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
+      setIsRejecting(false);
       setSubmitting(false);
     }
   };
@@ -470,15 +506,16 @@ export const KYCDetail = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <Label htmlFor="approvalNote" className="text-sm font-medium mb-2 block">
                   Approval Note <span className="text-gray-400 text-xs">(Optional)</span>
-                </label>
-                <textarea
-                  className="w-full border rounded p-2 min-h-[100px]"
+                </Label>
+                <Textarea
+                  id="approvalNote"
+                  className="min-h-[100px] resize-none"
                   value={approvalNote}
                   onChange={(e) => setApprovalNote(e.target.value)}
                   placeholder="Enter optional note for approval..."
-                  disabled={submitting}
+                  disabled={isApproving}
                 />
               </div>
               <div className="flex gap-2">
@@ -489,16 +526,26 @@ export const KYCDetail = () => {
                     setApprovalNote('');
                   }}
                   className="flex-1"
-                  disabled={submitting}
+                  disabled={isApproving}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleApproveSubmit}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                  disabled={submitting}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  disabled={isApproving}
                 >
-                  {submitting ? 'Approving...' : 'Confirm Approve'}
+                  {isApproving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Approving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Confirm Approve
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -515,17 +562,19 @@ export const KYCDetail = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <Label htmlFor="rejectionReason" className="text-sm font-medium mb-2 block">
                   Rejection Reason <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  className="w-full border rounded p-2 min-h-[100px]"
+                </Label>
+                <Textarea
+                  id="rejectionReason"
+                  className="min-h-[100px] resize-none"
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   placeholder="Enter reason for rejection (required)..."
                   required
-                  disabled={submitting}
+                  disabled={isRejecting}
                 />
+                <p className="text-xs text-gray-500 mt-1">This feedback will be sent to the user</p>
               </div>
               <div className="flex gap-2">
                 <Button
@@ -535,16 +584,26 @@ export const KYCDetail = () => {
                     setRejectionReason('');
                   }}
                   className="flex-1"
-                  disabled={submitting}
+                  disabled={isRejecting}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleRejectSubmit}
-                  className="flex-1 bg-red-600 hover:bg-red-700"
-                  disabled={submitting}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  disabled={!rejectionReason.trim() || isRejecting}
                 >
-                  {submitting ? 'Rejecting...' : 'Confirm Reject'}
+                  {isRejecting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Rejecting...
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Confirm Reject
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Loader2, 
   ArrowLeft, 
@@ -50,6 +51,7 @@ interface UserWithKyc {
 
 export const KYCReview = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserWithKyc[]>([]);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
@@ -58,6 +60,8 @@ export const KYCReview = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [approvalNote, setApprovalNote] = useState('');
   const [error, setError] = useState('');
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
 
   useEffect(() => {
     loadUsersWithKyc();
@@ -92,16 +96,27 @@ export const KYCReview = () => {
   const handleApproveSubmit = async () => {
     if (!selectedUserId) return;
 
+    setIsApproving(true);
     try {
       await adminApi.approveKyc(selectedUserId, approvalNote ? { note: approvalNote } : undefined);
-      alert('KYC approved successfully');
+      toast({
+        title: 'Success!',
+        description: 'KYC approved successfully. The user has been notified.',
+        className: 'bg-green-50 border-green-200',
+      });
       setApproveModalOpen(false);
       setApprovalNote('');
       setSelectedUserId(null);
-      loadUsersWithKyc();
+      await loadUsersWithKyc();
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to approve KYC';
-      alert(`Error: ${errorMessage}`);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -113,20 +128,35 @@ export const KYCReview = () => {
 
   const handleRejectSubmit = async () => {
     if (!selectedUserId || !rejectionReason.trim()) {
-      alert('Please enter a rejection reason');
+      toast({
+        title: 'Validation Error',
+        description: 'Please enter a rejection reason',
+        variant: 'destructive',
+      });
       return;
     }
 
+    setIsRejecting(true);
     try {
       await adminApi.rejectKyc(selectedUserId, { reason: rejectionReason });
-      alert('KYC rejected successfully. User will be notified to resubmit documents.');
+      toast({
+        title: 'KYC Rejected',
+        description: 'KYC rejected successfully. User will be notified to resubmit documents.',
+        className: 'bg-amber-50 border-amber-200',
+      });
       setRejectModalOpen(false);
       setRejectionReason('');
       setSelectedUserId(null);
-      loadUsersWithKyc();
+      await loadUsersWithKyc();
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to reject KYC';
-      alert(`Error: ${errorMessage}`);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRejecting(false);
     }
   };
 
@@ -414,9 +444,19 @@ export const KYCReview = () => {
                 <Button 
                   onClick={handleApproveSubmit} 
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                  disabled={isApproving}
                 >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Confirm Approve
+                  {isApproving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Approving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Confirm Approve
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -467,10 +507,19 @@ export const KYCReview = () => {
                 <Button 
                   onClick={handleRejectSubmit} 
                   className="flex-1 bg-red-600 hover:bg-red-700 text-white shadow-sm"
-                  disabled={!rejectionReason.trim()}
+                  disabled={!rejectionReason.trim() || isRejecting}
                 >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Confirm Reject
+                  {isRejecting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Rejecting...
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Confirm Reject
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>

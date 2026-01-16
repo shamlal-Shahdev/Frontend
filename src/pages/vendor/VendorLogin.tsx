@@ -41,12 +41,51 @@ export const VendorLogin = () => {
       localStorage.setItem('userRole', response.user.role);
       navigate('/vendor/dashboard');
     } catch (err: any) {
-      let errorMessage = 'Login failed. Please try again.';
+      let errorMessage = 'Invalid credentials. Please check your email and password.';
       
-      if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
+      // Check for error in different response formats
+      if (err.response?.data) {
+        // Check for errors.email (InvalidCredentialsException format)
+        if (err.response.data.errors?.email) {
+          const emailError = err.response.data.errors.email;
+          if (emailError.toLowerCase().includes('invalid') || 
+              emailError.toLowerCase().includes('password') ||
+              emailError.toLowerCase().includes('credentials')) {
+            errorMessage = 'Invalid credentials. Please check your email and password.';
+          } else {
+            errorMessage = emailError;
+          }
+        }
+        // Check for direct message field
+        else if (err.response.data.message) {
+          const msg = err.response.data.message;
+          // Check for specific error types and provide user-friendly messages
+          if (msg.includes('not registered') || msg.includes('register first')) {
+            errorMessage = 'This email is not registered as a vendor. Please register first.';
+          } else if (msg.includes('Invalid credentials') || 
+                    msg.includes('invalid password') || 
+                    msg.includes('Invalid email or password') ||
+                    msg.toLowerCase().includes('credentials')) {
+            errorMessage = 'Invalid credentials. Please check your email and password.';
+          } else if (msg.includes('not verified') || msg.includes('verify')) {
+            errorMessage = 'Please verify your email before logging in.';
+          } else if (msg.includes('Vendor role required') || msg.includes('Access denied')) {
+            errorMessage = 'Access denied. Vendor role required.';
+          } else {
+            errorMessage = msg;
+          }
+        }
+        // Check for error string directly
+        else if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        }
       } else if (err.message) {
-        errorMessage = err.message;
+        // Handle generic error messages
+        if (err.message.includes('Invalid') || err.message.includes('credentials')) {
+          errorMessage = 'Invalid credentials. Please check your email and password.';
+        } else {
+          errorMessage = err.message;
+        }
       }
       
       setError(errorMessage);

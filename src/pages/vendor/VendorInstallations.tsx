@@ -4,6 +4,17 @@ import { vendorApi } from '@/api/vendor.api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
   CheckCircle, 
@@ -11,7 +22,9 @@ import {
   Activity,
   Eye,
   Package,
-  XCircle
+  XCircle,
+  Loader2,
+  AlertTriangle
 } from 'lucide-react';
 
 interface InstallationEntity {
@@ -35,6 +48,7 @@ interface InstallationEntity {
 
 export const VendorInstallations = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [installations, setInstallations] = useState<InstallationEntity[]>([]);
   const [total, setTotal] = useState(0);
@@ -44,6 +58,11 @@ export const VendorInstallations = () => {
   const [selectedInstallation, setSelectedInstallation] = useState<InstallationEntity | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [updating, setUpdating] = useState<number | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{
+    id: number;
+    status: 'in_progress' | 'completed' | 'rejected';
+  } | null>(null);
 
   useEffect(() => {
     loadInstallations();
@@ -64,28 +83,51 @@ export const VendorInstallations = () => {
     }
   };
 
-  const handleStatusUpdate = async (id: number, status: 'in_progress' | 'completed' | 'rejected') => {
-    const statusMessage = status === 'rejected' 
-      ? 'REJECT this installation? This action cannot be undone.' 
-      : `update this installation status to ${status.replace('_', ' ')}?`;
-    
-    if (!confirm(`Are you sure you want to ${statusMessage}`)) {
-      return;
-    }
+  const handleStatusUpdateClick = (id: number, status: 'in_progress' | 'completed' | 'rejected') => {
+    setPendingAction({ id, status });
+    setConfirmDialogOpen(true);
+  };
 
+  const handleStatusUpdateConfirm = async () => {
+    if (!pendingAction) return;
+
+    const { id, status } = pendingAction;
+    setConfirmDialogOpen(false);
     setUpdating(id);
+    
     try {
       await vendorApi.updateInstallationStatus(id, { status });
-      alert(`Installation status updated successfully`);
+      
+      const statusText = status === 'rejected' 
+        ? 'rejected' 
+        : status === 'completed' 
+        ? 'completed' 
+        : 'started';
+      
+      toast({
+        title: 'Success!',
+        description: `Installation has been ${statusText} successfully.`,
+        className: status === 'rejected' 
+          ? 'bg-amber-50 border-amber-200' 
+          : status === 'completed'
+          ? 'bg-green-50 border-green-200'
+          : 'bg-blue-50 border-blue-200',
+      });
+      
       loadInstallations();
       if (detailsModalOpen) {
         setDetailsModalOpen(false);
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || `Failed to update installation status`;
-      alert(`Error: ${errorMessage}`);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setUpdating(null);
+      setPendingAction(null);
     }
   };
 
@@ -95,7 +137,11 @@ export const VendorInstallations = () => {
       setSelectedInstallation(fullDetails);
       setDetailsModalOpen(true);
     } catch (err: any) {
-      alert('Failed to load installation details');
+      toast({
+        title: 'Error',
+        description: 'Failed to load installation details',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -211,7 +257,7 @@ export const VendorInstallations = () => {
                           <td className="py-3 px-4">{installation.id}</td>
                           <td className="py-3 px-4 font-medium">{installation.name}</td>
                           <td className="py-3 px-4">
-                            <div className="font-medium">{installation.user?.name || 'N/A'}</div>
+                              <div className="font-medium">{installation.user?.name || 'N/A'}</div>
                           </td>
                           <td className="py-3 px-4">{installation.capacityKw} kW</td>
                           <td className="py-3 px-4">
@@ -237,7 +283,7 @@ export const VendorInstallations = () => {
                                   variant="outline"
                                   size="sm"
                                   className="text-orange-600 hover:text-orange-700"
-                                  onClick={() => handleStatusUpdate(installation.id, 'in_progress')}
+                                  onClick={() => handleStatusUpdateClick(installation.id, 'in_progress')}
                                   disabled={updating === installation.id}
                                 >
                                   {updating === installation.id ? (
@@ -256,7 +302,7 @@ export const VendorInstallations = () => {
                                     variant="outline"
                                     size="sm"
                                     className="text-green-600 hover:text-green-700"
-                                    onClick={() => handleStatusUpdate(installation.id, 'completed')}
+                                    onClick={() => handleStatusUpdateClick(installation.id, 'completed')}
                                     disabled={updating === installation.id}
                                   >
                                     {updating === installation.id ? (
@@ -272,7 +318,7 @@ export const VendorInstallations = () => {
                                     variant="outline"
                                     size="sm"
                                     className="text-red-600 hover:text-red-700"
-                                    onClick={() => handleStatusUpdate(installation.id, 'rejected')}
+                                    onClick={() => handleStatusUpdateClick(installation.id, 'rejected')}
                                     disabled={updating === installation.id}
                                   >
                                     {updating === installation.id ? (
@@ -292,7 +338,7 @@ export const VendorInstallations = () => {
                                     variant="outline"
                                     size="sm"
                                     className="text-green-600 hover:text-green-700"
-                                    onClick={() => handleStatusUpdate(installation.id, 'in_progress')}
+                                    onClick={() => handleStatusUpdateClick(installation.id, 'in_progress')}
                                     disabled={updating === installation.id}
                                   >
                                     {updating === installation.id ? (
@@ -308,7 +354,7 @@ export const VendorInstallations = () => {
                                     variant="outline"
                                     size="sm"
                                     className="text-red-600 hover:text-red-700"
-                                    onClick={() => handleStatusUpdate(installation.id, 'rejected')}
+                                    onClick={() => handleStatusUpdateClick(installation.id, 'rejected')}
                                     disabled={updating === installation.id}
                                   >
                                     {updating === installation.id ? (
@@ -327,7 +373,7 @@ export const VendorInstallations = () => {
                                   variant="outline"
                                   size="sm"
                                   className="text-red-600 hover:text-red-700"
-                                  onClick={() => handleStatusUpdate(installation.id, 'rejected')}
+                                  onClick={() => handleStatusUpdateClick(installation.id, 'rejected')}
                                   disabled={updating === installation.id}
                                 >
                                   {updating === installation.id ? (
@@ -456,7 +502,7 @@ export const VendorInstallations = () => {
                 <div className="flex gap-2 pt-4 border-t">
                   <Button
                     className="flex-1 bg-orange-500 hover:bg-orange-600"
-                    onClick={() => handleStatusUpdate(selectedInstallation.id, 'in_progress')}
+                    onClick={() => handleStatusUpdateClick(selectedInstallation.id, 'in_progress')}
                     disabled={updating === selectedInstallation.id}
                   >
                     {updating === selectedInstallation.id ? (
@@ -478,7 +524,7 @@ export const VendorInstallations = () => {
                 <div className="flex gap-2 pt-4 border-t">
                   <Button
                     className="flex-1 bg-green-500 hover:bg-green-600"
-                    onClick={() => handleStatusUpdate(selectedInstallation.id, 'completed')}
+                    onClick={() => handleStatusUpdateClick(selectedInstallation.id, 'completed')}
                     disabled={updating === selectedInstallation.id}
                   >
                     {updating === selectedInstallation.id ? (
@@ -496,7 +542,7 @@ export const VendorInstallations = () => {
                   <Button
                     variant="destructive"
                     className="flex-1"
-                    onClick={() => handleStatusUpdate(selectedInstallation.id, 'rejected')}
+                    onClick={() => handleStatusUpdateClick(selectedInstallation.id, 'rejected')}
                     disabled={updating === selectedInstallation.id}
                   >
                     {updating === selectedInstallation.id ? (
@@ -519,8 +565,7 @@ export const VendorInstallations = () => {
                     <Button
                       className="flex-1 bg-green-500 hover:bg-green-600"
                       onClick={() => {
-                        handleStatusUpdate(selectedInstallation.id, 'in_progress');
-                        setDetailsModalOpen(false);
+                        handleStatusUpdateClick(selectedInstallation.id, 'in_progress');
                       }}
                       disabled={updating === selectedInstallation.id}
                     >
@@ -541,8 +586,7 @@ export const VendorInstallations = () => {
                     <Button
                       className="flex-1 bg-orange-500 hover:bg-orange-600"
                       onClick={() => {
-                        handleStatusUpdate(selectedInstallation.id, 'in_progress');
-                        setDetailsModalOpen(false);
+                        handleStatusUpdateClick(selectedInstallation.id, 'in_progress');
                       }}
                       disabled={updating === selectedInstallation.id}
                     >
@@ -563,8 +607,7 @@ export const VendorInstallations = () => {
                     variant="destructive"
                     className="flex-1"
                     onClick={() => {
-                      handleStatusUpdate(selectedInstallation.id, 'rejected');
-                      setDetailsModalOpen(false);
+                      handleStatusUpdateClick(selectedInstallation.id, 'rejected');
                     }}
                     disabled={updating === selectedInstallation.id}
                   >
@@ -586,6 +629,91 @@ export const VendorInstallations = () => {
           </Card>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              {pendingAction?.status === 'rejected' ? (
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+              ) : pendingAction?.status === 'completed' ? (
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-blue-600" />
+                </div>
+              )}
+              <AlertDialogTitle>
+                {pendingAction?.status === 'rejected' 
+                  ? 'Reject Installation?' 
+                  : pendingAction?.status === 'completed'
+                  ? 'Complete Installation?'
+                  : 'Start Installation?'}
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="pt-2">
+              {pendingAction?.status === 'rejected' ? (
+                <>
+                  Are you sure you want to <strong>reject</strong> this installation? 
+                  <br />
+                  <span className="text-red-600 font-medium">This action cannot be undone.</span>
+                </>
+              ) : pendingAction?.status === 'completed' ? (
+                <>
+                  Are you sure you want to mark this installation as <strong>completed</strong>?
+                  <br />
+                  This will finalize the installation process.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to <strong>start</strong> this installation?
+                  <br />
+                  The status will be updated to "In Progress".
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingAction(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleStatusUpdateConfirm}
+              className={
+                pendingAction?.status === 'rejected'
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : pendingAction?.status === 'completed'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }
+            >
+              {updating === pendingAction?.id ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {pendingAction?.status === 'rejected' 
+                    ? 'Rejecting...' 
+                    : pendingAction?.status === 'completed'
+                    ? 'Completing...'
+                    : 'Starting...'}
+                </>
+              ) : (
+                <>
+                  {pendingAction?.status === 'rejected' 
+                    ? 'Yes, Reject' 
+                    : pendingAction?.status === 'completed'
+                    ? 'Yes, Complete'
+                    : 'Yes, Start'}
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

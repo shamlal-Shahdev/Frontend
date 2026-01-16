@@ -75,11 +75,18 @@ export default function InstallToEarn() {
       if (installations && installations.length > 0) {
         // Get the most recent installation (first one in the array)
         const latest = installations[0];
-        setExistingInstallation(latest);
+        // Only show status if installation is NOT rejected (rejected installations allow resubmission)
+        if (latest.status !== 'rejected') {
+          setExistingInstallation(latest);
+        } else {
+          // Clear existing installation for rejected status to show form
+          setExistingInstallation(null);
+        }
       }
     } catch (err: any) {
       console.error('Failed to check existing installations', err);
       // If error, just show the form
+      setExistingInstallation(null);
     } finally {
       setCheckingInstallations(false);
     }
@@ -99,7 +106,7 @@ export default function InstallToEarn() {
           navigate('/login');
         }, 2000);
       } else {
-        setError('Failed to load vendors. Please refresh the page.');
+      setError('Failed to load vendors. Please refresh the page.');
       }
     } finally {
       setLoadingVendors(false);
@@ -146,12 +153,15 @@ export default function InstallToEarn() {
         vendorId: parseInt(formData.vendorId, 10),
       });
 
-      // Refresh the page to show the status
-      await checkExistingInstallation();
       toast({
         title: 'Success!',
-        description: 'Your request has been submitted. View the status below.',
+        description: 'Your request has been submitted successfully.',
       });
+
+      // Redirect to installation status page after successful submission
+      setTimeout(() => {
+        navigate('/installation-status');
+      }, 1000);
     } catch (err: any) {
       console.error('Installation submission error:', err);
       const errorMessage =
@@ -450,14 +460,14 @@ export default function InstallToEarn() {
                       <SelectValue placeholder={loadingVendors ? 'Loading vendors...' : vendors.length === 0 ? 'No verified vendors available' : 'Select a vendor'} />
                     </SelectTrigger>
                     {vendors.length > 0 && (
-                      <SelectContent>
+                    <SelectContent>
                         {                        vendors.map((vendor) => (
                           <SelectItem key={vendor.id} value={vendor.id.toString()}>
                             {vendor.companyName || vendor.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
-                    )}
+                      )}
                   </Select>
                   <p className="text-sm text-gray-500">
                     {vendors.length === 0 && !loadingVendors

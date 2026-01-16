@@ -126,7 +126,18 @@ export const Register = () => {
         navigate('/login');
       }, 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      // Backend sends error in errors.email format for email already exists
+      const errorMessage = err.response?.data?.errors?.email 
+        || err.response?.data?.message 
+        || 'Registration failed. Please try again.';
+      
+      // Transform email already exists message to be more user-friendly
+      const finalMessage = errorMessage.toLowerCase().includes('already exists') || 
+                          errorMessage.toLowerCase().includes('email already')
+        ? 'This email is already registered. Please use a different email or try logging in.'
+        : errorMessage;
+      
+      setError(finalMessage);
       setLoading(false);
     }
   };
