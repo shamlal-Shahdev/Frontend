@@ -22,6 +22,8 @@ import { Dashboard } from "./pages/user/Dashboard";
 import { Profile } from "./pages/user/Profile";
 import InstallToEarn from "./pages/user/InstallToEarn";
 import { InstallationStatus } from "./pages/user/InstallationStatus";
+import { EnergyUpload } from "./pages/user/EnergyUpload";
+import { EnergyStatus } from "./pages/user/EnergyStatus";
 
 // Admin pages
 import { AdminLogin } from "./pages/admin/AdminLogin";
@@ -29,6 +31,7 @@ import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { KYCReview } from "./pages/admin/KYCReview";
 import { KYCDetail } from "./pages/admin/KYCDetail";
 import { InstallationRequests } from "./pages/admin/InstallationRequests";
+import { EnergyRequests } from "./pages/admin/EnergyRequests";
 
 // Vendor pages
 import { VendorRegister } from "./pages/vendor/VendorRegister";
@@ -103,6 +106,16 @@ const App = () => {
               <InstallationStatus />
             </ProtectedRoute>
           } />
+          <Route path="/energy/upload" element={
+            <ProtectedRoute>
+              <EnergyUpload />
+            </ProtectedRoute>
+          } />
+          <Route path="/energy/status" element={
+            <ProtectedRoute>
+              <EnergyStatus />
+            </ProtectedRoute>
+          } />
 
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -124,6 +137,11 @@ const App = () => {
           <Route path="/admin/installations" element={
             <AdminRoute>
               <InstallationRequests />
+            </AdminRoute>
+          } />
+          <Route path="/admin/energy-requests" element={
+            <AdminRoute>
+              <EnergyRequests />
             </AdminRoute>
           } />
 

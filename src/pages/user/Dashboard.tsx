@@ -85,7 +85,12 @@ export const Dashboard = () => {
             >
               Install to Earn
             </button>
-            <button className="text-gray-600 hover:text-gray-900">Energy</button>
+            <button 
+              className="text-gray-600 hover:text-gray-900"
+              onClick={() => navigate('/energy/upload')}
+            >
+              Energy
+            </button>
             <button className="text-gray-600 hover:text-gray-900">Certificates</button>
             <button className="text-gray-600 hover:text-gray-900">CO₂ Offset</button>
             <button className="text-gray-600 hover:text-gray-900">Marketplace</button>

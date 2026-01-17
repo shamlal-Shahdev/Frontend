@@ -39,6 +39,8 @@ interface Installation {
   registeredAt: string;
   verifiedAt?: string | null;
   vendorId?: number | null;
+  rejectionReason?: string | null;
+  adminRemark?: string | null;
   vendor?: {
     id: number;
     name: string;
@@ -56,6 +58,7 @@ export default function InstallToEarn() {
   const [error, setError] = useState('');
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [existingInstallation, setExistingInstallation] = useState<Installation | null>(null);
+  const [showResubmitForm, setShowResubmitForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -75,18 +78,20 @@ export default function InstallToEarn() {
       if (installations && installations.length > 0) {
         // Get the most recent installation (first one in the array)
         const latest = installations[0];
-        // Only show status if installation is NOT rejected (rejected installations allow resubmission)
-        if (latest.status !== 'rejected') {
-          setExistingInstallation(latest);
-        } else {
-          // Clear existing installation for rejected status to show form
-          setExistingInstallation(null);
-        }
+        // Always set the installation, regardless of status
+        setExistingInstallation(latest);
+        // Reset resubmit form flag when checking
+        setShowResubmitForm(false);
+      } else {
+        // No installations found, show form
+        setExistingInstallation(null);
+        setShowResubmitForm(false);
       }
     } catch (err: any) {
       console.error('Failed to check existing installations', err);
       // If error, just show the form
       setExistingInstallation(null);
+      setShowResubmitForm(false);
     } finally {
       setCheckingInstallations(false);
     }
@@ -158,10 +163,8 @@ export default function InstallToEarn() {
         description: 'Your request has been submitted successfully.',
       });
 
-      // Redirect to installation status page after successful submission
-      setTimeout(() => {
-        navigate('/installation-status');
-      }, 1000);
+      // Refresh installation status after successful submission
+      await checkExistingInstallation();
     } catch (err: any) {
       console.error('Installation submission error:', err);
       const errorMessage =
@@ -266,8 +269,97 @@ export default function InstallToEarn() {
     );
   }
 
-  // Show status if installation exists
-  if (existingInstallation) {
+  // Show rejected status with resubmit option if installation is rejected and form not requested
+  if (existingInstallation && existingInstallation.status === 'rejected' && !showResubmitForm) {
+    const rejectionReason = existingInstallation.rejectionReason || existingInstallation.adminRemark || 'No reason provided';
+    
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Top Navigation */}
+        <nav className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
+            </div>
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <div className="container mx-auto py-8 px-4">
+          <div className="max-w-2xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Installation Request Rejected</CardTitle>
+                <CardDescription>
+                  Your installation request has been rejected. Please review the reason and resubmit.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-500">Installation Name</Label>
+                    <p className="mt-1 font-medium">{existingInstallation.name}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-500">Status</Label>
+                    <div className="mt-1">{getStatusBadge(existingInstallation.status)}</div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-500">Capacity</Label>
+                    <p className="mt-1">{existingInstallation.capacityKw} kW</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-500">Submitted On</Label>
+                    <p className="mt-1 text-sm">{formatDate(existingInstallation.registeredAt)}</p>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold text-gray-500">Location</Label>
+                  <p className="mt-1">{existingInstallation.location}</p>
+                </div>
+                
+                {/* Rejection Reason */}
+                <div className="pt-4 border-t">
+                  <Label className="text-sm font-semibold text-gray-500">Rejection Reason</Label>
+                  <Alert variant="destructive" className="mt-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="mt-2">
+                      {rejectionReason}
+                    </AlertDescription>
+                  </Alert>
+                </div>
+
+                <div className="pt-4 border-t space-y-3">
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={() => setShowResubmitForm(true)}
+                  >
+                    <Package className="w-4 h-4 mr-2" />
+                    Resubmit Installation Request
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => navigate('/installation-status')}
+                  >
+                    View All Installations
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show status if installation exists and is submitted (not rejected)
+  if (existingInstallation && existingInstallation.status !== 'rejected') {
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Top Navigation */}
@@ -339,7 +431,7 @@ export default function InstallToEarn() {
     );
   }
 
-  // Show form if no installation exists
+  // Show form if no installation exists OR if rejected and resubmit button was clicked
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation */}

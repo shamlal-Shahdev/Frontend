@@ -9,7 +9,8 @@ import {
   UserCheck, 
   ShieldCheck,
   LogOut,
-  AlertCircle
+  AlertCircle,
+  Zap
 } from 'lucide-react';
 
 export const AdminDashboard = () => {
@@ -73,6 +74,13 @@ export const AdminDashboard = () => {
             >
               <FileCheck className="w-4 h-4 mr-2" />
               Installations
+            </Button>
+            <Button 
+              onClick={() => navigate('/admin/energy-requests')}
+              className="bg-purple-500 hover:bg-purple-600"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Energy Requests
             </Button>
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />
@@ -188,7 +196,7 @@ export const AdminDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/kyc')}>
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -204,6 +212,25 @@ export const AdminDashboard = () => {
             <CardContent>
               <Button className="w-full bg-green-500 hover:bg-green-600">
                 Go to KYC Review →
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/energy-requests')}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <CardTitle>Energy Requests</CardTitle>
+                  <p className="text-sm text-gray-500 mt-1">Review and approve energy generation requests</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full bg-purple-500 hover:bg-purple-600">
+                Go to Energy Requests →
               </Button>
             </CardContent>
           </Card>
