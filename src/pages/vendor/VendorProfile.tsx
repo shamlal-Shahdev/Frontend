@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '@/api/axios.config';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+const logoUrl = '/Assets/logo.png';
 import { 
   User, 
   Mail, 
@@ -12,7 +14,10 @@ import {
   ArrowLeft,
   CheckCircle,
   Zap,
-  Building2
+  Building2,
+  Edit,
+  Save,
+  X
 } from 'lucide-react';
 
 interface VendorProfile {
@@ -30,8 +35,16 @@ interface VendorProfile {
 export const VendorProfile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [profile, setProfile] = useState<VendorProfile | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    companyName: ''
+  });
 
   useEffect(() => {
     loadProfile();
@@ -41,10 +54,80 @@ export const VendorProfile = () => {
     try {
       const response = await api.get('/auth/me');
       setProfile(response.data);
+      setFormData({
+        name: response.data.name || '',
+        phone: response.data.phone || '',
+        companyName: response.data.companyName || ''
+      });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setError('');
+    setSuccess('');
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFormData({
+      name: profile?.name || '',
+      phone: profile?.phone || '',
+      companyName: profile?.companyName || ''
+    });
+    setError('');
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only +92 followed by 10 digits
+    if (value.startsWith('+92')) {
+      const digits = value.slice(3).replace(/\D/g, '').slice(0, 10);
+      setFormData({ ...formData, phone: `+92${digits}` });
+    } else {
+      const digits = value.replace(/\D/g, '').slice(0, 10);
+      setFormData({ ...formData, phone: digits ? `+92${digits}` : '' });
+    }
+  };
+
+  const handleUpdate = async () => {
+    setError('');
+    setSuccess('');
+    
+    // Validation
+    if (!formData.name.trim()) {
+      setError('Name is required');
+      return;
+    }
+
+    if (formData.phone && !formData.phone.match(/^\+92\d{10}$/)) {
+      setError('Phone must be in format +92 followed by 10 digits');
+      return;
+    }
+
+    setUpdating(true);
+
+    try {
+      const response = await api.patch('/auth/me', {
+        name: formData.name,
+        phone: formData.phone || null,
+        companyName: formData.companyName || null
+      });
+      
+      setProfile(response.data);
+      setSuccess('Profile updated successfully!');
+      setIsEditing(false);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -68,8 +151,8 @@ export const VendorProfile = () => {
       {/* Top Navigation */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Zap className="w-6 h-6 text-orange-500" />
+          <div className="flex items-center gap-3">
+          <img src={logoUrl} alt="WattsUp Energy" className="h-12 w-12 rounded-md bg-white/20 p-1" />
             <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
           </div>
           <div className="flex items-center gap-4">
@@ -97,9 +180,37 @@ export const VendorProfile = () => {
           </Card>
         )}
 
+        {success && (
+          <Card className="mb-6 border-green-200 bg-green-50">
+            <CardContent className="p-4 text-green-700 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              {success}
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Profile Information</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Profile Information</CardTitle>
+              {!isEditing ? (
+                <Button onClick={handleEdit} variant="outline" size="sm">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button onClick={handleUpdate} disabled={updating} size="sm">
+                    <Save className="w-4 h-4 mr-2" />
+                    {updating ? 'Saving...' : 'Save'}
+                  </Button>
+                  <Button onClick={handleCancel} variant="outline" size="sm">
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center gap-4 pb-6 border-b">
@@ -118,7 +229,16 @@ export const VendorProfile = () => {
                   <Building2 className="w-4 h-4" />
                   Company Name
                 </label>
-                <p className="text-lg font-medium text-gray-900">{profile?.companyName || 'N/A'}</p>
+                {isEditing ? (
+                  <Input
+                    value={formData.companyName}
+                    onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                    placeholder="Enter company name"
+                    className="h-12"
+                  />
+                ) : (
+                  <p className="text-lg font-medium text-gray-900">{profile?.companyName || 'N/A'}</p>
+                )}
               </div>
 
               <div>
@@ -126,15 +246,28 @@ export const VendorProfile = () => {
                   <User className="w-4 h-4" />
                   Contact Name
                 </label>
-                <p className="text-lg font-medium text-gray-900">{profile?.name || 'N/A'}</p>
+                {isEditing ? (
+                  <Input
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Enter your name"
+                    className="h-12"
+                    required
+                  />
+                ) : (
+                  <p className="text-lg font-medium text-gray-900">{profile?.name || 'N/A'}</p>
+                )}
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-gray-500 flex items-center gap-2 mb-2">
                   <Mail className="w-4 h-4" />
-                  Email
+                  Email {profile?.isVerified && <span className="text-xs text-green-600">(Verified)</span>}
                 </label>
                 <p className="text-lg font-medium text-gray-900">{profile?.email || 'N/A'}</p>
+                {isEditing && (
+                  <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                )}
               </div>
 
               <div>
@@ -142,7 +275,16 @@ export const VendorProfile = () => {
                   <Phone className="w-4 h-4" />
                   Phone
                 </label>
-                <p className="text-lg font-medium text-gray-900">{profile?.phone || 'N/A'}</p>
+                {isEditing ? (
+                  <Input
+                    value={formData.phone}
+                    onChange={handlePhoneChange}
+                    placeholder="+923001234567"
+                    className="h-12"
+                  />
+                ) : (
+                  <p className="text-lg font-medium text-gray-900">{profile?.phone || 'N/A'}</p>
+                )}
               </div>
 
               <div>

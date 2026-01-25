@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Zap, Eye, EyeOff, CheckCircle } from 'lucide-react';
+const logoUrl = '/Assets/logo.png';
 
 export const VendorRegister = () => {
   const navigate = useNavigate();
@@ -106,7 +107,7 @@ export const VendorRegister = () => {
         navigate('/vendor/login');
       }, 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      setError(err.response?.data?.message || 'This email is already registered. Please use a different email.');
       setLoading(false);
     }
   };
@@ -117,16 +118,9 @@ export const VendorRegister = () => {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-                <Zap className="w-8 h-8 text-white" />
-              </div>
+              <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
             </div>
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600 mb-2">
-              WattsUp Energy
-            </h1>
-            <p className="text-xl font-medium text-orange-600">
-              Vendor Registration
-            </p>
+            
           </div>
 
           <Card className="shadow-xl border-0">
@@ -144,7 +138,7 @@ export const VendorRegister = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-lg text-sm text-center">
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm text-center">
                   Redirecting to login page...
                 </div>
               </div>
@@ -160,16 +154,9 @@ export const VendorRegister = () => {
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-              <Zap className="w-8 h-8 text-white" />
-            </div>
+            <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
           </div>
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600 mb-2">
-            WattsUp Energy
-          </h1>
-          <p className="text-xl font-medium text-orange-600">
-            Vendor Registration
-          </p>
+          
         </div>
 
         <Card className="shadow-xl border-0">
@@ -194,7 +181,7 @@ export const VendorRegister = () => {
                     value={formData.firstName}
                     onChange={handleFirstNameChange}
                     placeholder="First Name"
-                    className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                   />
                 </div>
 
@@ -205,7 +192,7 @@ export const VendorRegister = () => {
                     value={formData.lastName}
                     onChange={handleLastNameChange}
                     placeholder="Last Name"
-                    className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                   />
                 </div>
               </div>
@@ -221,7 +208,7 @@ export const VendorRegister = () => {
                     if (error) setError('');
                   }}
                   placeholder="vendor@example.com"
-                  className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                  className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
 
@@ -238,7 +225,7 @@ export const VendorRegister = () => {
                     onChange={handlePhoneChange}
                     placeholder="3001234567"
                     maxLength={10}
-                    className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-l-none rounded-r-lg"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-l-none rounded-r-lg"
                   />
                 </div>
               </div>
@@ -253,7 +240,7 @@ export const VendorRegister = () => {
                     if (error) setError('');
                   }}
                   placeholder="e.g., Solar Energy Solutions"
-                  className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                  className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
 
@@ -270,7 +257,7 @@ export const VendorRegister = () => {
                       if (error) setError('');
                     }}
                     placeholder="Enter Your Password"
-                    className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 pr-10"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 pr-10"
                   />
                   <button
                     type="button"
@@ -300,7 +287,7 @@ export const VendorRegister = () => {
                       if (error) setError('');
                     }}
                     placeholder="Confirm Your Password"
-                    className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 pr-10"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 pr-10"
                   />
                   <button
                     type="button"
@@ -318,7 +305,7 @@ export const VendorRegister = () => {
 
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-orange-500/30 transition-all duration-200 mt-6" 
+                className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200 mt-6" 
                 disabled={loading}
               >
                 {loading ? (
@@ -334,7 +321,7 @@ export const VendorRegister = () => {
 
               <p className="text-center text-sm text-gray-600 pt-2">
                 Already have an account?{' '}
-                <Link to="/vendor/login" className="font-medium text-orange-600 hover:text-orange-700 hover:underline">
+                <Link to="/vendor/login" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
                   Login
                 </Link>
               </p>

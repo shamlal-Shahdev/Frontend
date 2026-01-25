@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff, Zap } from 'lucide-react';
+const logoUrl = '/Assets/logo.png';
 
 export const VendorLogin = () => {
   const navigate = useNavigate();
@@ -99,16 +100,9 @@ export const VendorLogin = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-              <Zap className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600 mb-2">
-            WattsUp Energy
-          </h1>
-          <p className="text-xl font-medium text-orange-600">
-            Vendor Login
-          </p>
+            <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
+          </div>  
+          
         </div>
 
         <Card className="shadow-xl border-0">
@@ -136,7 +130,7 @@ export const VendorLogin = () => {
                     if (error) setError('');
                   }}
                   placeholder="Enter Your Email"
-                  className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                  className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
 
@@ -152,7 +146,7 @@ export const VendorLogin = () => {
                       if (error) setError('');
                     }}
                     placeholder="Enter Your Password"
-                    className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 pr-10"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 pr-10"
                   />
                   <button
                     type="button"
@@ -169,17 +163,17 @@ export const VendorLogin = () => {
               </div>
 
               <div className="flex items-center justify-between text-sm pt-1">
-                <Link to="/vendor/register" className="font-medium text-orange-600 hover:text-orange-700 hover:underline">
+                <Link to="/vendor/register" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
                   New vendor? Sign Up
                 </Link>
-                <Link to="/vendor/forgot-password" className="font-medium text-orange-600 hover:text-orange-700 hover:underline">
+                <Link to="/vendor/forgot-password" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
                   Forgot Password?
                 </Link>
               </div>
 
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-orange-500/30 transition-all duration-200" 
+                className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200" 
                 disabled={loading || !formData.email || !formData.password}
               >
                 {loading ? (

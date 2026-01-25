@@ -15,6 +15,8 @@ import {
   Zap
 } from 'lucide-react';
 
+const logoUrl = '/Assets/logo.png';
+
 export const Profile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -104,8 +106,8 @@ export const Profile = () => {
       {/* Top Navigation */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Zap className="w-6 h-6 text-green-500" />
+          <div className="flex items-center gap-3">
+            <img src={logoUrl} alt="WattsUp Energy" className="h-12 w-12 rounded-md object-contain" />
             <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
           </div>
           <div className="flex items-center gap-4">

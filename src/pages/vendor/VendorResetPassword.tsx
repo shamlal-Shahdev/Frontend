@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Zap, Eye, EyeOff, CheckCircle } from 'lucide-react';
+const logoUrl = '/Assets/logo.png';
 
 export const VendorResetPassword = () => {
   const navigate = useNavigate();
@@ -60,16 +61,9 @@ export const VendorResetPassword = () => {
           {/* Logo and Branding */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-                <Zap className="w-8 h-8 text-white" />
-              </div>
+              <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
             </div>
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600 mb-2">
-              WattsUp Energy
-            </h1>
-            <p className="text-xl font-medium text-orange-600">
-              Create a new password
-            </p>
+            
           </div>
 
           {/* Success Card */}
@@ -88,7 +82,7 @@ export const VendorResetPassword = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-lg text-sm text-center">
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm text-center">
                   Redirecting to login page...
                 </div>
               </div>
@@ -105,16 +99,9 @@ export const VendorResetPassword = () => {
         {/* Logo and Branding */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-              <Zap className="w-8 h-8 text-white" />
-            </div>
+            <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
           </div>
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600 mb-2">
-            WattsUp Energy
-          </h1>
-          <p className="text-xl font-medium text-orange-600">
-            Create a new password
-          </p>
+          
         </div>
 
         {/* Reset Password Card */}
@@ -145,7 +132,7 @@ export const VendorResetPassword = () => {
                       if (error) setError('');
                     }}
                     placeholder="Enter new password"
-                    className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 pr-10"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 pr-10"
                   />
                   <button
                     type="button"
@@ -174,7 +161,7 @@ export const VendorResetPassword = () => {
                       if (error) setError('');
                     }}
                     placeholder="Confirm new password"
-                    className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 pr-10"
+                    className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 pr-10"
                   />
                   <button
                     type="button"
@@ -192,7 +179,7 @@ export const VendorResetPassword = () => {
 
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-orange-500/30 transition-all duration-200" 
+                className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200" 
                 disabled={loading || !token}
               >
                 {loading ? (

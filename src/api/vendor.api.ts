@@ -85,6 +85,16 @@ interface GetVendorsResponse {
   total: number;
 }
 
+interface VendorDashboardData {
+  installations: {
+    submitted: number;
+    assigned: number;
+    inProgress: number;
+    completed: number;
+    rejected: number;
+  };
+}
+
 export const vendorApi = {
   register: async (data: VendorRegisterRequest): Promise<VendorRegisterResponse> => {
     const response = await api.post('/vendor/auth/register', data);
@@ -133,6 +143,11 @@ export const vendorApi = {
       token,
       newPassword,
     });
+    return response.data;
+  },
+
+  getDashboard: async (): Promise<VendorDashboardData> => {
+    const response = await api.get('/vendor/dashboard/stats');
     return response.data;
   },
 };

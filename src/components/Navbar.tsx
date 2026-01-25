@@ -10,7 +10,7 @@ export const Navbar = () => {
   
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard, disabled: false },
-    { path: "/wallet", label: "Wallet", icon: Wallet, disabled: true },
+    { path: "/wallet", label: "Wallet", icon: Wallet, disabled: false },
     { path: "/install", label: "Install to Earn", icon: Zap, disabled: true },
     { path: "/energy", label: "Energy", icon: TrendingUp, disabled: true },
     { path: "/certificates", label: "Certificates", icon: Award, disabled: true },

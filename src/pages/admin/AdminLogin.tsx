@@ -4,6 +4,7 @@ import { adminApi } from '@/api/admin.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import logo from '../../../public/logo.png';
 
 export const AdminLogin = () => {
   const navigate = useNavigate();
@@ -58,11 +59,15 @@ export const AdminLogin = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Admin Login</CardTitle>
-          <CardDescription>Enter your admin credentials</CardDescription>
-        </CardHeader>
+      <div className="w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <img src="/Assets/logo.png" alt="WattsUp Energy" className="w-40 h-40 object-contain" />
+        </div>
+        <Card>
+          <CardHeader className="flex flex-col items-center">
+            <CardTitle>Admin Login</CardTitle>
+            <CardDescription>Enter your admin credentials</CardDescription>
+          </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -94,9 +99,10 @@ export const AdminLogin = () => {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Logging in...' : 'Login as Admin'}
             </Button>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

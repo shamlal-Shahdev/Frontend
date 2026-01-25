@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Zap, ArrowLeft, CheckCircle } from 'lucide-react';
+const logoUrl = '/Assets/logo.png';
 
 export const VendorForgotPassword = () => {
   const [loading, setLoading] = useState(false);
@@ -35,16 +36,9 @@ export const VendorForgotPassword = () => {
           {/* Logo and Branding */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-                <Zap className="w-8 h-8 text-white" />
-              </div>
+              <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
             </div>
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600 mb-2">
-              WattsUp Energy
-            </h1>
-            <p className="text-xl font-medium text-orange-600">
-              Vendor Portal
-            </p>
+            
           </div>
 
           {/* Success Card */}
@@ -63,12 +57,12 @@ export const VendorForgotPassword = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm">
                   Click the link in the email to reset your password.
                 </div>
                 
                 <Link to="/vendor/login">
-                  <Button className="w-full h-12 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-orange-500/30">
+                  <Button className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Login
                   </Button>
@@ -87,16 +81,9 @@ export const VendorForgotPassword = () => {
         {/* Logo and Branding */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-              <Zap className="w-8 h-8 text-white" />
-            </div>
+            <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
           </div>
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600 mb-2">
-            WattsUp Energy
-          </h1>
-          <p className="text-xl font-medium text-orange-600">
-            Vendor Portal
-          </p>
+          
         </div>
 
         {/* Forgot Password Card */}
@@ -125,13 +112,13 @@ export const VendorForgotPassword = () => {
                     if (error) setError('');
                   }}
                   placeholder="Enter Your Email"
-                  className="h-12 bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                  className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
 
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold text-base shadow-lg shadow-orange-500/30 transition-all duration-200" 
+                className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200" 
                 disabled={loading || !email}
               >
                 {loading ? (

@@ -23,15 +23,25 @@ interface AdminLoginResponse {
 }
 
 interface AdminDashboardData {
-  users: {
-    total: number;
-    verified: number;
-  };
   kyc: {
     pending: number;
     inReview: number;
     approved: number;
     rejected: number;
+  };
+  installations: {
+    submitted: number;
+    assigned: number;
+    inProgress: number;
+    completed: number;
+    rejected: number;
+  };
+  energyRequests: {
+    pending: number;
+    approved: number;
+    rejected: number;
+    rewardGenerated: number;
+    blockchainFailed: number;
   };
 }
 

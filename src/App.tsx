@@ -24,6 +24,11 @@ import InstallToEarn from "./pages/user/InstallToEarn";
 import { InstallationStatus } from "./pages/user/InstallationStatus";
 import { EnergyUpload } from "./pages/user/EnergyUpload";
 import { EnergyStatus } from "./pages/user/EnergyStatus";
+import { Wallet } from "./pages/user/Wallet";
+import { Certificates } from "./pages/user/Certificates";
+import { CarbonOffset } from "./pages/user/CarbonOffset";
+import { Marketplace } from "./pages/user/Marketplace";
+import { Predict } from "./pages/user/Predict";
 
 // Admin pages
 import { AdminLogin } from "./pages/admin/AdminLogin";
@@ -114,6 +119,31 @@ const App = () => {
           <Route path="/energy/status" element={
             <ProtectedRoute>
               <EnergyStatus />
+            </ProtectedRoute>
+          } />
+          <Route path="/wallet" element={
+            <ProtectedRoute>
+              <Wallet />
+            </ProtectedRoute>
+          } />
+          <Route path="/certificates" element={
+            <ProtectedRoute>
+              <Certificates />
+            </ProtectedRoute>
+          } />
+          <Route path="/carbon" element={
+            <ProtectedRoute>
+              <CarbonOffset />
+            </ProtectedRoute>
+          } />
+          <Route path="/marketplace" element={
+            <ProtectedRoute>
+              <Marketplace />
+            </ProtectedRoute>
+          } />
+          <Route path="/predict" element={
+            <ProtectedRoute>
+              <Predict />
             </ProtectedRoute>
           } />
 

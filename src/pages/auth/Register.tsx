@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Zap, Eye, EyeOff, CheckCircle } from 'lucide-react';
-
+const logoUrl = '/Assets/logo.png';
 export const Register = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -148,14 +148,9 @@ export const Register = () => {
         <div className="w-full max-w-md">
           {/* Logo and Branding */}
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
-                <Zap className="w-8 h-8 text-white" />
-              </div>
+            <div className="flex justify-center">
+              <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
             </div>
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600 mb-2">
-              WattsUp Energy
-            </h1>
             <p className="text-xl font-medium text-emerald-600">
               Power Up. Earn Up.
             </p>
@@ -193,14 +188,10 @@ export const Register = () => {
       <div className="w-full max-w-lg">
         {/* Logo and Branding */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
-              <Zap className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600 mb-2">
-            WattsUp Energy
-          </h1>
+        <div className="flex justify-center">
+            <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
+          </div> 
+
           <p className="text-xl font-medium text-emerald-600">
             Power Up. Earn Up.
           </p>
