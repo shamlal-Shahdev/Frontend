@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff, Zap } from 'lucide-react';
 const logoUrl = '/Assets/logo.png';
-
 export const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -16,46 +15,34 @@ export const Login = () => {
     email: '',
     password: '',
   });
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('🔵 Form submitted!', formData);
-    
-    // Clear previous errors
     setError('');
     setLoading(true);
-
     try {
       console.log('🔵 Calling login API...');
       const response = await authApi.login(formData);
       console.log('✅ Login response:', response);
-      
-      // Safety check: Block admin users from using user login
       if (response.user.role === 'admin' || response.user.role === 'ADMIN') {
         console.log('❌ Admin user attempted to login through user endpoint');
         setError('Admin users must use the admin login page. Redirecting...');
         setLoading(false);
-        // Redirect to admin login after a short delay
         setTimeout(() => {
           navigate('/admin/login');
         }, 2000);
         return;
       }
-
       localStorage.setItem('token', response.token);
       localStorage.setItem('userId', response.user.id.toString());
       localStorage.setItem('userRole', response.user.role);
-
       if (!response.user.isVerified) {
         console.log('❌ Email not verified');
         setError('Email not verified. Please check your email.');
         setLoading(false);
         return;
       }
-
-      // Handle KYC status routing
       const kycStatus = response.user.kycStatus?.toLowerCase();
-      
       if (kycStatus === 'approved') {
         console.log('➡️ Redirecting to dashboard');
         navigate('/dashboard');
@@ -69,14 +56,9 @@ export const Login = () => {
     } catch (err: any) {
       console.error('❌ Login error:', err);
       console.error('❌ Error response:', err.response);
-      
-      // Extract error message from different possible locations
       let message = 'Invalid password or credentials. Please try again.';
-      
-      // Handle different error formats
       if (err.response?.data?.message) {
         const errorMsg = err.response.data.message;
-        // Check for specific error types and provide user-friendly messages
         if (errorMsg.includes('not registered') || errorMsg.includes('register first')) {
           message = 'This email is not registered. Please sign up first.';
         } else if (errorMsg.includes('Invalid credentials') || errorMsg.includes('invalid password') || errorMsg.includes('password')) {
@@ -87,10 +69,8 @@ export const Login = () => {
           message = errorMsg;
         }
       } else if (err.message) {
-        // Handle error messages from authApi
         const errorMsg = err.message;
         if (errorMsg.includes('Request failed') || errorMsg.includes('status code')) {
-          // Generic error - show user-friendly message
           message = 'Invalid password or credentials. Please check your email and password.';
         } else if (errorMsg.includes('not registered') || errorMsg.includes('register first')) {
           message = 'This email is not registered. Please sign up first.';
@@ -99,27 +79,21 @@ export const Login = () => {
         } else if (errorMsg.includes('Invalid credentials') || errorMsg.includes('invalid password')) {
           message = 'Invalid password or credentials. Please check your email and password.';
         } else if (!errorMsg.includes('status code') && !errorMsg.includes('Request failed')) {
-          // Use the error message if it's not a generic HTTP error
           message = errorMsg;
         }
       }
-      
-      // Final check - if message still contains technical errors, replace with user-friendly message
       if (message.includes('status code') || message.includes('Request failed') || message.includes('422')) {
         message = 'Invalid password or credentials. Please check your email and password.';
       }
-      
       console.log('❌ Setting error message:', message);
       setError(message);
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
       <div className="w-full max-w-md">
-        {/* Logo and Branding */}
         <div className="text-center mb-8">
          <div className="flex justify-center">
             <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
@@ -128,15 +102,12 @@ export const Login = () => {
             Power Up. Earn Up.
           </p>
         </div>
-
-        {/* Login Card */}
         <Card className="shadow-xl border-0">
           <CardContent className="pt-8 pb-6 px-8">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-1">Welcome</h2>
               <p className="text-gray-500">Sign in to your account</p>
             </div>
-
             <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
@@ -153,7 +124,6 @@ export const Login = () => {
                   )}
                 </div>
               )}
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
                 <Input
@@ -168,7 +138,6 @@ export const Login = () => {
                   className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
                 <div className="relative">
@@ -196,7 +165,6 @@ export const Login = () => {
                   </button>
                 </div>
               </div>
-
               <div className="flex items-center justify-between text-sm pt-1">
                 <Link to="/register" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
                   New here? Sign Up
@@ -205,7 +173,6 @@ export const Login = () => {
                   Forgot password?
                 </Link>
               </div>
-
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200" 
@@ -228,6 +195,3 @@ export const Login = () => {
     </div>
   );
 };
-
-
-

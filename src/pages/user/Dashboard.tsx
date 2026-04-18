@@ -27,7 +27,6 @@ import {
   Upload,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
 export const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,12 +47,10 @@ export const Dashboard = () => {
   const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-
   useEffect(() => {
     loadDashboard();
     loadUser();
   }, []);
-
   const loadUser = async () => {
     try {
       const { authApi } = await import('@/api/auth.api');
@@ -67,7 +64,6 @@ export const Dashboard = () => {
       setUser({ name: 'User', email: 'user@wattsup.com' });
     }
   };
-
   const loadDashboard = async () => {
     try {
       const response = await dashboardApi.getUserDashboard();
@@ -78,14 +74,12 @@ export const Dashboard = () => {
       setLoading(false);
     }
   };
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
     navigate('/login');
   };
-
   const navItems = [
     { path: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { path: '/wallet', label: 'Wallet', icon: Wallet },
@@ -96,9 +90,7 @@ export const Dashboard = () => {
     { path: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
     { path: '/predict', label: 'Predict & Win', icon: FileCheck },
   ];
-
   const isActive = (path: string) => location.pathname === path;
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -106,15 +98,12 @@ export const Dashboard = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Left Sidebar */}
       <aside className={cn(
         "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
         sidebarOpen ? "w-64" : "w-20"
       )}>
-        {/* Logo Section */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <img src={logoUrl} alt="WattsUp Energy" className="h-16 w-16 rounded-md object-contain flex-shrink-0" />
@@ -123,8 +112,6 @@ export const Dashboard = () => {
             )}
           </div>
         </div>
-
-        {/* Action Button */}
         <div className="p-4">
           <Button
             onClick={() => navigate('/energy/upload')}
@@ -141,8 +128,6 @@ export const Dashboard = () => {
             )}
           </Button>
         </div>
-
-        {/* Navigation Links */}
         <nav className="flex-1 px-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -164,7 +149,6 @@ export const Dashboard = () => {
             );
           })}
         </nav>
-        {/* Sidebar Toggle */}
         <div className="p-4 border-t border-gray-200">
           <Button
             variant="ghost"
@@ -176,13 +160,9 @@ export const Dashboard = () => {
           </Button>
         </div>
       </aside>
-
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center">
-            {/* User Profile Section - Right Side */}
             <div className="flex items-center gap-4 ml-auto">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
@@ -208,15 +188,13 @@ export const Dashboard = () => {
             </div>
           </div>
         </header>
-
-        {/* Main Content */}
+        {}
         <main className="flex-1 overflow-y-auto p-6">
-          {/* Welcome Header */}
+          {}
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-500 mt-1">Welcome back! Here's your renewable energy overview.</p>
           </div>
-
           {/* Summary Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {/* Total Energy Generated */}
@@ -244,7 +222,6 @@ export const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
-
             {/* WATT Balance */}
             <Card className="hover:shadow-lg transition-shadow relative">
               <Button
@@ -270,7 +247,6 @@ export const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
-
             {/* CO₂ Offset */}
             <Card className="hover:shadow-lg transition-shadow relative">
               <Button
@@ -296,7 +272,6 @@ export const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
-
             {/* Certificates Earned */}
             <Card className="hover:shadow-lg transition-shadow relative">
               <Button
@@ -323,7 +298,6 @@ export const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
-
           {/* Charts and Data Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Energy Generation Trend */}
@@ -367,7 +341,6 @@ export const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
-
             {/* Rewards Distribution */}
             <Card>
               <CardHeader>
@@ -416,7 +389,6 @@ export const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
-
           {/* Recent Activity */}
           <Card>
             <CardHeader>

@@ -8,7 +8,6 @@ import { Zap, Upload, Camera, ArrowRight, ArrowLeft, CheckCircle2, Eye, EyeOff }
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { authApi } from "@/integration/api";
-
 interface PersonalInfo {
   firstName: string;
   lastName: string;
@@ -23,7 +22,6 @@ interface PersonalInfo {
   password: string;
   confirmPassword: string;
 }
-
 const KYCSignup = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +29,6 @@ const KYCSignup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
     firstName: "",
     lastName: "",
@@ -46,21 +43,17 @@ const KYCSignup = () => {
     password: "",
     confirmPassword: "",
   });
-
-
   const [documents, setDocuments] = useState({
     cnicFront: null as File | null,
     cnicBack: null as File | null,
     selfie: null as File | null,
   });
-
   const handlePersonalInfoChange = (field: keyof PersonalInfo, value: string) => {
     setPersonalInfo(prev => ({
       ...prev,
       [field]: value
     }));
   };
-
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value === "" || /^[0-9+\-\s()]*$/.test(value)) {
@@ -73,14 +66,11 @@ const KYCSignup = () => {
       });
     }
   };
-
   const handleCNICChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, ''); // Remove all non-digits
-    // Format as 12345-1234567-1 (5 digits - 7 digits - 1 digit)
+    let value = e.target.value.replace(/\D/g, ''); 
     if (value.length > 13) {
-      value = value.slice(0, 13); // Limit to 13 digits
+      value = value.slice(0, 13); 
     }
-    // Add formatting
     if (value.length > 12) {
       value = value.slice(0, 5) + '-' + value.slice(5, 12) + '-' + value.slice(12);
     } else if (value.length > 5) {
@@ -88,18 +78,15 @@ const KYCSignup = () => {
     }
     handlePersonalInfoChange("cnicNumber", value);
   };
-
   const handleFileChange = (field: "cnicFront" | "cnicBack" | "selfie", file: File | null) => {
     setDocuments(prev => ({
       ...prev,
       [field]: file
     }));
   };
-
   const validateStep1 = (): boolean => {
     const required = ["firstName", "lastName", "phone", "gender", "dateOfBirth", "city", "province", "country"];
     const missing = required.filter(field => !personalInfo[field as keyof PersonalInfo]);
-    
     if (missing.length > 0) {
       toast({
         title: "Missing Information",
@@ -110,7 +97,6 @@ const KYCSignup = () => {
     }
     return true;
   };
-
   const validateStep2 = (): boolean => {
     if (!personalInfo.cnicNumber) {
       toast({
@@ -120,8 +106,6 @@ const KYCSignup = () => {
       });
       return false;
     }
-    
-    // Validate CNIC format (Pakistani format: 12345-1234567-1)
     const cnicPattern = /^\d{5}-\d{7}-\d{1}$/;
     if (!cnicPattern.test(personalInfo.cnicNumber.replace(/\s/g, ''))) {
       toast({
@@ -131,7 +115,6 @@ const KYCSignup = () => {
       });
       return false;
     }
-    
     if (!documents.cnicFront || !documents.cnicBack) {
       toast({
         title: "Missing Documents",
@@ -142,11 +125,9 @@ const KYCSignup = () => {
     }
     return true;
   };
-
   const validateStep3 = (): boolean => {
     const required = ["email", "password", "confirmPassword"];
     const missing = required.filter(field => !personalInfo[field as keyof PersonalInfo]);
-    
     if (missing.length > 0) {
       toast({
         title: "Missing Information",
@@ -155,7 +136,6 @@ const KYCSignup = () => {
       });
       return false;
     }
-
     if (personalInfo.password !== personalInfo.confirmPassword) {
       toast({
         title: "Password Mismatch",
@@ -164,8 +144,6 @@ const KYCSignup = () => {
       });
       return false;
     }
-
-    // Validate password strength (backend requirements)
     if (personalInfo.password.length < 8) {
       toast({
         title: "Invalid Password",
@@ -174,13 +152,10 @@ const KYCSignup = () => {
       });
       return false;
     }
-
-    // Check for uppercase, lowercase, number, and special character
     const hasUpperCase = /[A-Z]/.test(personalInfo.password);
     const hasLowerCase = /[a-z]/.test(personalInfo.password);
     const hasNumber = /[0-9]/.test(personalInfo.password);
     const hasSpecialChar = /[@$!%*?&]/.test(personalInfo.password);
-
     if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
       toast({
         title: "Invalid Password",
@@ -191,7 +166,6 @@ const KYCSignup = () => {
     }
     return true;
   };
-
   const validateStep4 = (): boolean => {
     if (!documents.selfie) {
       toast({
@@ -203,28 +177,22 @@ const KYCSignup = () => {
     }
     return true;
   };
-
   const handleNext = () => {
     if (currentStep === 1 && !validateStep1()) return;
     if (currentStep === 2 && !validateStep2()) return;
     if (currentStep === 3 && !validateStep3()) return;
     if (currentStep === 4 && !validateStep4()) return;
-
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
   };
-
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
-
   const handleSubmit = async () => {
     if (!validateStep4()) return;
-
-    // Validate all required documents
     if (!documents.cnicFront || !documents.cnicBack || !documents.selfie) {
       toast({
         title: "Missing Documents",
@@ -233,11 +201,8 @@ const KYCSignup = () => {
       });
       return;
     }
-
     setIsLoading(true);
-
     try {
-      // Validate data before sending
       console.log('📋 Registration Data:', {
         firstName: personalInfo.firstName,
         lastName: personalInfo.lastName,
@@ -255,8 +220,6 @@ const KYCSignup = () => {
           selfie: !!documents.selfie,
         },
       });
-
-      // Use the authApi.registerWithKyc from integration
       const registrationData = {
         firstName: personalInfo.firstName.trim(),
         lastName: personalInfo.lastName.trim(),
@@ -267,23 +230,17 @@ const KYCSignup = () => {
         province: personalInfo.province.trim(),
         country: personalInfo.country.trim(),
         gender: personalInfo.gender as 'male' | 'female' | 'other',
-        dateOfBirth: personalInfo.dateOfBirth, // Should be YYYY-MM-DD format
-        cnicNumber: personalInfo.cnicNumber.trim().replace(/\s/g, ''), // Remove spaces
+        dateOfBirth: personalInfo.dateOfBirth, 
+        cnicNumber: personalInfo.cnicNumber.trim().replace(/\s/g, ''), 
         cnicFront: documents.cnicFront!,
         cnicBack: documents.cnicBack!,
         selfie: documents.selfie!,
       };
-
-      // Call the API
       const response = await authApi.registerWithKyc(registrationData);
-      
-      // Show success message
       toast({
         title: "Registration Successful! ✅",
         description: response.message || "Please check your email to verify your account. Your KYC has been submitted for review.",
       });
-
-      // Redirect to login after a delay
       setTimeout(() => {
         navigate("/");
       }, 3000);
@@ -298,7 +255,6 @@ const KYCSignup = () => {
       setIsLoading(false);
     }
   };
-
   const renderStepIndicator = () => {
     return (
       <div className="flex items-center justify-center mb-8 flex-wrap gap-2">
@@ -327,7 +283,6 @@ const KYCSignup = () => {
       </div>
     );
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <div className="w-full max-w-2xl space-y-6 animate-fade-in">
@@ -338,7 +293,6 @@ const KYCSignup = () => {
           <h1 className="text-3xl font-bold gradient-text">WattsUp Energy</h1>
           <p className="text-xl font-bold gradient-text">Power Up. Earn Up.</p>
         </div>
-
         <Card className="glass-card">
           <CardHeader className="text-center">
             <CardTitle className="text-center">KYC Verification</CardTitle>
@@ -348,8 +302,6 @@ const KYCSignup = () => {
           </CardHeader>
           <CardContent>
             {renderStepIndicator()}
-
-            {/* Step 1: Personal Information */}
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -374,7 +326,6 @@ const KYCSignup = () => {
                     />
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone *</Label>
                   <Input
@@ -386,7 +337,6 @@ const KYCSignup = () => {
                     required
                   />
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="gender">Gender *</Label>
@@ -412,7 +362,6 @@ const KYCSignup = () => {
                     />
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">City *</Label>
@@ -435,7 +384,6 @@ const KYCSignup = () => {
                     />
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="country">Country *</Label>
                   <Input
@@ -448,8 +396,6 @@ const KYCSignup = () => {
                 </div>
               </div>
             )}
-
-            {/* Step 2: CNIC Details */}
             {currentStep === 2 && (
               <div className="space-y-6">
                 <div className="space-y-2">
@@ -463,7 +409,6 @@ const KYCSignup = () => {
                     required
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="cnicFront">CNIC Front Picture *</Label>
                   <div className="relative">
@@ -497,7 +442,6 @@ const KYCSignup = () => {
                     </label>
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="cnicBack">CNIC Back Picture *</Label>
                   <div className="relative">
@@ -533,8 +477,6 @@ const KYCSignup = () => {
                 </div>
               </div>
             )}
-
-            {/* Step 3: Email and Password */}
             {currentStep === 3 && (
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -548,7 +490,6 @@ const KYCSignup = () => {
                     required
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="password">Password *</Label>
                   <div className="relative">
@@ -574,7 +515,6 @@ const KYCSignup = () => {
                     </button>
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm Password *</Label>
                   <div className="relative">
@@ -602,8 +542,6 @@ const KYCSignup = () => {
                 </div>
               </div>
             )}
-
-            {/* Step 4: Selfie Upload */}
             {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="space-y-2">
@@ -642,8 +580,6 @@ const KYCSignup = () => {
                 </div>
               </div>
             )}
-
-            {/* Navigation Buttons */}
             <div className="flex justify-between items-center mt-8">
               <div>
                 {currentStep === 1 ? (
@@ -662,7 +598,6 @@ const KYCSignup = () => {
                   </Button>
                 )}
               </div>
-
               {currentStep < 4 ? (
                 <Button
                   type="button"
@@ -690,6 +625,4 @@ const KYCSignup = () => {
     </div>
   );
 };
-
 export default KYCSignup;
-

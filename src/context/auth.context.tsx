@@ -2,15 +2,12 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AuthState } from '@/types/auth';
 import { authService } from '@/services/auth.service';
 import { User, LoginRequest, RegisterRequest, RegisterWithKycRequest } from '@/integration/api';
-
-// Create context with initial state
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   isLoading: true,
   error: null,
 };
-
 interface AuthContextValue {
   state: AuthState;
   login: (credentials: LoginRequest) => Promise<void>;
@@ -20,7 +17,6 @@ interface AuthContextValue {
   refreshUser: () => Promise<void>;
   clearError: () => void;
 }
-
 const AuthContext = createContext<AuthContextValue>({
   state: initialState,
   login: async () => {},
@@ -30,23 +26,11 @@ const AuthContext = createContext<AuthContextValue>({
   refreshUser: async () => {},
   clearError: () => {},
 });
-
-/**
- * AuthProvider: Manages global authentication state
- * Features:
- * - Automatic token validation
- * - User session persistence
- * - Login/logout/register functionality
- * - Error handling
- */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AuthState>(initialState);
-
-  // Load user on mount
   useEffect(() => {
     loadUser();
   }, []);
-
   const loadUser = async () => {
     try {
       const user = await authService.getCurrentUser();
@@ -63,7 +47,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }));
     }
   };
-
   const login = async (credentials: LoginRequest) => {
     try {
       const { user } = await authService.login(credentials);
@@ -81,7 +64,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
   };
-
   const register = async (data: RegisterRequest) => {
     try {
       await authService.register(data);
@@ -97,7 +79,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
   };
-
   const registerWithKyc = async (data: RegisterWithKycRequest) => {
     try {
       await authService.registerWithKyc(data);
@@ -113,32 +94,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
   };
-
   const logout = () => {
-    // Clear all data from localStorage
     authService.clearAllStorage();
     setState({
       ...initialState,
       isLoading: false,
     });
   };
-
   const refreshUser = async () => {
     await loadUser();
   };
-
   const clearError = () => {
     setState(prev => ({ ...prev, error: null }));
   };
-
   return (
     <AuthContext.Provider value={{ state, login, register, registerWithKyc, logout, refreshUser, clearError }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
-// Custom hook for using auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

@@ -26,7 +26,6 @@ import {
   Loader2,
   AlertTriangle
 } from 'lucide-react';
-
 interface InstallationEntity {
   id: number;
   userId: number;
@@ -34,6 +33,8 @@ interface InstallationEntity {
   installationType: string;
   capacityKw: number;
   location: string;
+  latitude?: number | null;
+  longitude?: number | null;
   status: 'submitted' | 'assigned' | 'in_progress' | 'completed' | 'rejected';
   isActive: boolean;
   registeredAt: string;
@@ -45,7 +46,6 @@ interface InstallationEntity {
     phone?: string | null;
   };
 }
-
 export const VendorInstallations = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -63,11 +63,9 @@ export const VendorInstallations = () => {
     id: number;
     status: 'in_progress' | 'completed' | 'rejected';
   } | null>(null);
-
   useEffect(() => {
     loadInstallations();
   }, [page]);
-
   const loadInstallations = async () => {
     setLoading(true);
     setError('');
@@ -82,28 +80,22 @@ export const VendorInstallations = () => {
       setLoading(false);
     }
   };
-
   const handleStatusUpdateClick = (id: number, status: 'in_progress' | 'completed' | 'rejected') => {
     setPendingAction({ id, status });
     setConfirmDialogOpen(true);
   };
-
   const handleStatusUpdateConfirm = async () => {
     if (!pendingAction) return;
-
     const { id, status } = pendingAction;
     setConfirmDialogOpen(false);
     setUpdating(id);
-    
     try {
       await vendorApi.updateInstallationStatus(id, { status });
-      
       const statusText = status === 'rejected' 
         ? 'rejected' 
         : status === 'completed' 
         ? 'completed' 
         : 'started';
-      
       toast({
         title: 'Success!',
         description: `Installation has been ${statusText} successfully.`,
@@ -113,7 +105,6 @@ export const VendorInstallations = () => {
           ? 'bg-green-50 border-green-200'
           : 'bg-blue-50 border-blue-200',
       });
-      
       loadInstallations();
       if (detailsModalOpen) {
         setDetailsModalOpen(false);
@@ -130,7 +121,6 @@ export const VendorInstallations = () => {
       setPendingAction(null);
     }
   };
-
   const handleViewDetails = async (installation: InstallationEntity) => {
     try {
       const fullDetails = await vendorApi.getInstallationById(installation.id);
@@ -144,7 +134,6 @@ export const VendorInstallations = () => {
       });
     }
   };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
@@ -190,7 +179,6 @@ export const VendorInstallations = () => {
         );
     }
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -200,7 +188,6 @@ export const VendorInstallations = () => {
       minute: '2-digit',
     });
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -208,7 +195,6 @@ export const VendorInstallations = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
@@ -219,13 +205,11 @@ export const VendorInstallations = () => {
             Back to Dashboard
           </Button>
         </div>
-
         {error && (
           <Card className="mb-6 border-red-200 bg-red-50">
             <CardContent className="p-4 text-red-700">{error}</CardContent>
           </Card>
         )}
-
         <Card>
           <CardHeader>
             <CardTitle>Assigned Installations ({total})</CardTitle>
@@ -393,8 +377,7 @@ export const VendorInstallations = () => {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Pagination */}
+                {}
                 {total > limit && (
                   <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
                     <div className="text-sm text-gray-500">
@@ -425,8 +408,7 @@ export const VendorInstallations = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Details Modal */}
+      {}
       {detailsModalOpen && selectedInstallation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -461,12 +443,21 @@ export const VendorInstallations = () => {
                   <p className="mt-1">{selectedInstallation.capacityKw} kW</p>
                 </div>
               </div>
-
               <div>
                 <label className="text-sm font-semibold text-gray-500">Location</label>
                 <p className="mt-1">{selectedInstallation.location}</p>
+                {selectedInstallation.latitude != null &&
+                  selectedInstallation.longitude != null && (
+                    <a
+                      href={`https://www.openstreetmap.org/?mlat=${selectedInstallation.latitude}&mlon=${selectedInstallation.longitude}#map=16/${selectedInstallation.latitude}/${selectedInstallation.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:underline mt-1 inline-block"
+                    >
+                      Open on map
+                    </a>
+                  )}
               </div>
-
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-3">Customer Information</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -480,7 +471,6 @@ export const VendorInstallations = () => {
                   </div>
                 </div>
               </div>
-
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-3">Timestamps</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -496,8 +486,7 @@ export const VendorInstallations = () => {
                   )}
                 </div>
               </div>
-
-              {/* Action Buttons */}
+              {}
               {selectedInstallation.status === 'assigned' && (
                 <div className="flex gap-2 pt-4 border-t">
                   <Button
@@ -519,7 +508,6 @@ export const VendorInstallations = () => {
                   </Button>
                 </div>
               )}
-
               {selectedInstallation.status === 'in_progress' && (
                 <div className="flex gap-2 pt-4 border-t">
                   <Button
@@ -629,8 +617,7 @@ export const VendorInstallations = () => {
           </Card>
         </div>
       )}
-
-      {/* Confirmation Dialog */}
+      {}
       <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -717,5 +704,3 @@ export const VendorInstallations = () => {
     </div>
   );
 };
-
-

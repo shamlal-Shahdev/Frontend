@@ -28,33 +28,27 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-
 export default function AdminUserDetailsPage() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { userDetail, loading, error, fetchUserDetails, approveKyc, rejectKyc, requestDocuments } = useAdmin();
-
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [requestDocsDialogOpen, setRequestDocsDialogOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-
   const [approveNote, setApproveNote] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [requestDocsData, setRequestDocsData] = useState({
     documentTypes: [] as string[],
     message: '',
   });
-
   useEffect(() => {
     if (userId) {
       fetchUserDetails(userId);
     }
   }, [userId]);
-
   const handleApprove = async () => {
     if (!userId) return;
-
     try {
       setActionLoading(true);
       await approveKyc(userId, { note: approveNote || undefined });
@@ -67,13 +61,11 @@ export default function AdminUserDetailsPage() {
       setActionLoading(false);
     }
   };
-
   const handleReject = async () => {
     if (!userId || !rejectReason.trim()) {
       toast.error('Rejection reason is required');
       return;
     }
-
     try {
       setActionLoading(true);
       await rejectKyc(userId, { reason: rejectReason });
@@ -86,13 +78,11 @@ export default function AdminUserDetailsPage() {
       setActionLoading(false);
     }
   };
-
   const handleRequestDocuments = async () => {
     if (!userId || requestDocsData.documentTypes.length === 0 || !requestDocsData.message.trim()) {
       toast.error('Please select documents and provide a message');
       return;
     }
-
     try {
       setActionLoading(true);
       await requestDocuments(userId, requestDocsData);
@@ -105,7 +95,6 @@ export default function AdminUserDetailsPage() {
       setActionLoading(false);
     }
   };
-
   const toggleDocumentType = (type: string) => {
     setRequestDocsData(prev => ({
       ...prev,
@@ -114,7 +103,6 @@ export default function AdminUserDetailsPage() {
         : [...prev.documentTypes, type],
     }));
   };
-
   if (loading && !userDetail) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -125,7 +113,6 @@ export default function AdminUserDetailsPage() {
       </div>
     );
   }
-
   if (error || !userDetail) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -143,19 +130,15 @@ export default function AdminUserDetailsPage() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <Button variant="ghost" onClick={() => navigate('/admin/users')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Users
         </Button>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* User Info */}
           <div className="lg:col-span-1 space-y-6">
             <Card>
               <CardHeader>
@@ -192,8 +175,6 @@ export default function AdminUserDetailsPage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* KYC Info */}
           <div className="lg:col-span-2 space-y-6">
             {userDetail.kyc ? (
               <>
@@ -245,7 +226,6 @@ export default function AdminUserDetailsPage() {
                         <p className="font-medium">{userDetail.kyc.country}</p>
                       </div>
                     </div>
-
                     {userDetail.kyc.rejectionReason && (
                       <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />
@@ -254,7 +234,6 @@ export default function AdminUserDetailsPage() {
                         </AlertDescription>
                       </Alert>
                     )}
-
                     {userDetail.kyc.approvedAt && (
                       <Alert>
                         <CheckCircle2 className="h-4 w-4" />
@@ -265,8 +244,6 @@ export default function AdminUserDetailsPage() {
                     )}
                   </CardContent>
                 </Card>
-
-                {/* Documents */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Submitted Documents</CardTitle>
@@ -297,8 +274,6 @@ export default function AdminUserDetailsPage() {
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Actions */}
                 {(userDetail.kyc.status === 'pending' || userDetail.kyc.status === 'in_review') && (
                   <Card>
                     <CardHeader>
@@ -332,8 +307,6 @@ export default function AdminUserDetailsPage() {
                     </CardContent>
                   </Card>
                 )}
-
-                {/* Audit Logs */}
                 {userDetail.auditLogs && userDetail.auditLogs.length > 0 && (
                   <Card>
                     <CardHeader>
@@ -365,8 +338,6 @@ export default function AdminUserDetailsPage() {
           </div>
         </div>
       </div>
-
-      {/* Approve Dialog */}
       <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -396,8 +367,6 @@ export default function AdminUserDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -428,8 +397,6 @@ export default function AdminUserDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Request Documents Dialog */}
       <Dialog open={requestDocsDialogOpen} onOpenChange={setRequestDocsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -478,4 +445,3 @@ export default function AdminUserDetailsPage() {
     </div>
   );
 }
-

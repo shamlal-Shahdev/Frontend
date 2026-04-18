@@ -1,7 +1,3 @@
-/**
- * Custom hook for Admin operations
- */
-
 import { useState, useCallback } from 'react';
 import {
   adminApi,
@@ -15,7 +11,6 @@ import {
   AuditLogsResponse,
 } from '@/integration/admin.api';
 import { getErrorMessage } from '@/utils/error-handler';
-
 interface UseAdminReturn {
   stats: DashboardStats | null;
   users: UserListItem[];
@@ -38,7 +33,6 @@ interface UseAdminReturn {
   fetchAuditLogs: (params?: { userId?: string; page?: number; limit?: number }) => Promise<void>;
   clearError: () => void;
 }
-
 export function useAdmin(): UseAdminReturn {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [users, setUsers] = useState<UserListItem[]>([]);
@@ -52,10 +46,6 @@ export function useAdmin(): UseAdminReturn {
     limit: number;
     totalPages: number;
   } | null>(null);
-
-  /**
-   * Fetch dashboard statistics
-   */
   const fetchDashboardStats = useCallback(async () => {
     try {
       setLoading(true);
@@ -70,10 +60,6 @@ export function useAdmin(): UseAdminReturn {
       setLoading(false);
     }
   }, []);
-
-  /**
-   * Fetch users list with filters
-   */
   const fetchUsers = useCallback(async (params?: FilterUsersParams) => {
     try {
       setLoading(true);
@@ -89,10 +75,6 @@ export function useAdmin(): UseAdminReturn {
       setLoading(false);
     }
   }, []);
-
-  /**
-   * Fetch specific user details
-   */
   const fetchUserDetails = useCallback(async (userId: string) => {
     try {
       setLoading(true);
@@ -107,16 +89,11 @@ export function useAdmin(): UseAdminReturn {
       setLoading(false);
     }
   }, []);
-
-  /**
-   * Approve KYC submission
-   */
   const approveKyc = useCallback(async (userId: string, data: ApproveKycRequest) => {
     try {
       setLoading(true);
       setError(null);
       await adminApi.approveKyc(userId, data);
-      // Refresh user details after approval
       if (userDetail?.id === userId) {
         await fetchUserDetails(userId);
       }
@@ -128,16 +105,11 @@ export function useAdmin(): UseAdminReturn {
       setLoading(false);
     }
   }, [userDetail, fetchUserDetails]);
-
-  /**
-   * Reject KYC submission
-   */
   const rejectKyc = useCallback(async (userId: string, data: RejectKycRequest) => {
     try {
       setLoading(true);
       setError(null);
       await adminApi.rejectKyc(userId, data);
-      // Refresh user details after rejection
       if (userDetail?.id === userId) {
         await fetchUserDetails(userId);
       }
@@ -149,16 +121,11 @@ export function useAdmin(): UseAdminReturn {
       setLoading(false);
     }
   }, [userDetail, fetchUserDetails]);
-
-  /**
-   * Request additional documents
-   */
   const requestDocuments = useCallback(async (userId: string, data: RequestDocumentsRequest) => {
     try {
       setLoading(true);
       setError(null);
       await adminApi.requestDocuments(userId, data);
-      // Refresh user details after requesting documents
       if (userDetail?.id === userId) {
         await fetchUserDetails(userId);
       }
@@ -170,10 +137,6 @@ export function useAdmin(): UseAdminReturn {
       setLoading(false);
     }
   }, [userDetail, fetchUserDetails]);
-
-  /**
-   * Fetch audit logs
-   */
   const fetchAuditLogs = useCallback(async (params?: { userId?: string; page?: number; limit?: number }) => {
     try {
       setLoading(true);
@@ -188,14 +151,9 @@ export function useAdmin(): UseAdminReturn {
       setLoading(false);
     }
   }, []);
-
-  /**
-   * Clear error message
-   */
   const clearError = useCallback(() => {
     setError(null);
   }, []);
-
   return {
     stats,
     users,
@@ -214,4 +172,3 @@ export function useAdmin(): UseAdminReturn {
     clearError,
   };
 }
-

@@ -1,5 +1,4 @@
 import { api } from './axios.config';
-
 interface VendorRegisterRequest {
   firstName: string;
   lastName: string;
@@ -8,12 +7,10 @@ interface VendorRegisterRequest {
   companyName: string;
   password: string;
 }
-
 interface VendorLoginRequest {
   email: string;
   password: string;
 }
-
 interface VendorUser {
   id: number;
   name: string;
@@ -24,16 +21,13 @@ interface VendorUser {
   createdAt: string;
   updatedAt: string;
 }
-
 interface VendorLoginResponse {
   token: string;
   user: VendorUser;
 }
-
 interface VendorRegisterResponse {
   message: string;
 }
-
 interface InstallationEntity {
   id: number;
   userId: number;
@@ -58,18 +52,15 @@ interface InstallationEntity {
     email: string;
   } | null;
 }
-
 interface GetInstallationsResponse {
   data: InstallationEntity[];
   total: number;
   page: number;
   limit: number;
 }
-
 interface UpdateInstallationStatusRequest {
   status: 'in_progress' | 'completed' | 'rejected';
 }
-
 interface Vendor {
   id: number;
   name: string;
@@ -79,12 +70,10 @@ interface Vendor {
   isVerified: boolean;
   role: string;
 }
-
 interface GetVendorsResponse {
   vendors: Vendor[];
   total: number;
 }
-
 interface VendorDashboardData {
   installations: {
     submitted: number;
@@ -94,30 +83,25 @@ interface VendorDashboardData {
     rejected: number;
   };
 }
-
 export const vendorApi = {
   register: async (data: VendorRegisterRequest): Promise<VendorRegisterResponse> => {
     const response = await api.post('/vendor/auth/register', data);
     return response.data;
   },
-
   login: async (data: VendorLoginRequest): Promise<VendorLoginResponse> => {
     const response = await api.post('/vendor/auth/login', data);
     return response.data;
   },
-
   getInstallations: async (page: number = 1, limit: number = 10): Promise<GetInstallationsResponse> => {
     const response = await api.get('/vendor/installations', {
       params: { page, limit },
     });
     return response.data;
   },
-
   getInstallationById: async (id: number): Promise<InstallationEntity> => {
     const response = await api.get(`/vendor/installations/${id}`);
     return response.data;
   },
-
   updateInstallationStatus: async (
     id: number,
     data: UpdateInstallationStatusRequest
@@ -125,19 +109,16 @@ export const vendorApi = {
     const response = await api.patch(`/vendor/installations/${id}/status`, data);
     return response.data;
   },
-
   getVendors: async (verified: boolean = true): Promise<GetVendorsResponse> => {
     const response = await api.get('/vendors', {
       params: { verified },
     });
     return response.data;
   },
-
   forgotPassword: async (email: string): Promise<{ message: string }> => {
     const response = await api.post('/vendor/auth/forgot-password', { email });
     return response.data;
   },
-
   resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
     const response = await api.post('/vendor/auth/reset-password', {
       token,
@@ -145,11 +126,12 @@ export const vendorApi = {
     });
     return response.data;
   },
-
   getDashboard: async (): Promise<VendorDashboardData> => {
     const response = await api.get('/vendor/dashboard/stats');
     return response.data;
   },
+  resendVerificationEmail: async (data: { email: string }): Promise<{ message: string }> => {
+    const response = await api.post('/vendor/auth/resend-verification', data);
+    return response.data;
+  },
 };
-
-

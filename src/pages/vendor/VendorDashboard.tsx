@@ -18,7 +18,6 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
 export const VendorDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,12 +34,10 @@ export const VendorDashboard = () => {
   const [user, setUser] = useState<{ name?: string; email?: string; companyName?: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-
   useEffect(() => {
     loadDashboard();
     loadUser();
   }, []);
-
   const loadUser = async () => {
     try {
       const { authApi } = await import('@/api/auth.api');
@@ -55,7 +52,6 @@ export const VendorDashboard = () => {
       setUser({ name: 'Vendor', email: 'vendor@wattsup.com' });
     }
   };
-
   const loadDashboard = async () => {
     try {
       const response = await vendorApi.getDashboard();
@@ -66,22 +62,18 @@ export const VendorDashboard = () => {
       setLoading(false);
     }
   };
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
     navigate('/vendor/login');
   };
-
   const navItems = [
     { path: '/vendor/dashboard', label: 'Overview', icon: LayoutDashboard },
     { path: '/vendor/installations', label: 'My Installations', icon: Package },
     { path: '/vendor/profile', label: 'Profile', icon: User },
   ];
-
   const isActive = (path: string) => location.pathname === path;
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -89,15 +81,14 @@ export const VendorDashboard = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Left Sidebar */}
+      {}
       <aside className={cn(
         "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
         sidebarOpen ? "w-64" : "w-20"
       )}>
-        {/* Logo Section */}
+        {}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <img src={logoUrl} alt="WattsUp Energy" className="h-16 w-16 rounded-md object-contain flex-shrink-0" />
@@ -106,8 +97,7 @@ export const VendorDashboard = () => {
             )}
           </div>
         </div>
-
-        {/* Navigation Links */}
+        {}
         <nav className="flex-1 px-4 py-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -129,8 +119,7 @@ export const VendorDashboard = () => {
             );
           })}
         </nav>
-
-        {/* Sidebar Toggle */}
+        {}
         <div className="p-4 border-t border-gray-200">
           <Button
             variant="ghost"
@@ -142,13 +131,12 @@ export const VendorDashboard = () => {
           </Button>
         </div>
       </aside>
-
-      {/* Main Content Area */}
+      {}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header */}
+        {}
         <header className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center">
-            {/* User Profile Section - Right Side */}
+            {}
             <div className="flex items-center gap-4 ml-auto">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
@@ -169,20 +157,18 @@ export const VendorDashboard = () => {
             </div>
           </div>
         </header>
-
-        {/* Main Content */}
+        {}
         <main className="flex-1 overflow-y-auto p-6">
-          {/* Welcome Header */}
+          {}
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900">
               {user?.companyName ? `${user.companyName} Dashboard` : 'Vendor Dashboard'}
             </h1>
             <p className="text-gray-500 mt-1">Manage your assigned installations and track progress.</p>
           </div>
-
-          {/* Breakdown Cards */}
+          {}
           <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
-            {/* Install to Earn Breakdown */}
+            {}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">

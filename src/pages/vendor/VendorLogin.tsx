@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff, Zap } from 'lucide-react';
 const logoUrl = '/Assets/logo.png';
-
 export const VendorLogin = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -16,37 +15,29 @@ export const VendorLogin = () => {
     email: '',
     password: '',
   });
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const response = await vendorApi.login(formData);
-      
       if (response.user.role !== 'vendor') {
         setError('Vendor access required');
         setLoading(false);
         return;
       }
-
       if (!response.user.isVerified) {
         setError('Email not verified. Please check your email.');
         setLoading(false);
         return;
       }
-
       localStorage.setItem('token', response.token);
       localStorage.setItem('userId', response.user.id.toString());
       localStorage.setItem('userRole', response.user.role);
       navigate('/vendor/dashboard');
     } catch (err: any) {
       let errorMessage = 'Invalid credentials. Please check your email and password.';
-      
-      // Check for error in different response formats
       if (err.response?.data) {
-        // Check for errors.email (InvalidCredentialsException format)
         if (err.response.data.errors?.email) {
           const emailError = err.response.data.errors.email;
           if (emailError.toLowerCase().includes('invalid') || 
@@ -57,10 +48,8 @@ export const VendorLogin = () => {
             errorMessage = emailError;
           }
         }
-        // Check for direct message field
         else if (err.response.data.message) {
           const msg = err.response.data.message;
-          // Check for specific error types and provide user-friendly messages
           if (msg.includes('not registered') || msg.includes('register first')) {
             errorMessage = 'This email is not registered as a vendor. Please register first.';
           } else if (msg.includes('Invalid credentials') || 
@@ -76,25 +65,21 @@ export const VendorLogin = () => {
             errorMessage = msg;
           }
         }
-        // Check for error string directly
         else if (typeof err.response.data === 'string') {
           errorMessage = err.response.data;
         }
       } else if (err.message) {
-        // Handle generic error messages
         if (err.message.includes('Invalid') || err.message.includes('credentials')) {
           errorMessage = 'Invalid credentials. Please check your email and password.';
         } else {
           errorMessage = err.message;
         }
       }
-      
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
       <div className="w-full max-w-md">
@@ -102,23 +87,19 @@ export const VendorLogin = () => {
           <div className="flex justify-center mb-4">
             <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
           </div>  
-          
         </div>
-
         <Card className="shadow-xl border-0">
           <CardContent className="pt-8 pb-6 px-8">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-1">Welcome Vendor</h2>
               <p className="text-gray-500">Sign in to your vendor account</p>
             </div>
-
             <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
                 <Input
@@ -133,7 +114,6 @@ export const VendorLogin = () => {
                   className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
                 <div className="relative">
@@ -161,7 +141,6 @@ export const VendorLogin = () => {
                   </button>
                 </div>
               </div>
-
               <div className="flex items-center justify-between text-sm pt-1">
                 <Link to="/vendor/register" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
                   New vendor? Sign Up
@@ -170,7 +149,6 @@ export const VendorLogin = () => {
                   Forgot Password?
                 </Link>
               </div>
-
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200" 
@@ -193,5 +171,3 @@ export const VendorLogin = () => {
     </div>
   );
 };
-
-

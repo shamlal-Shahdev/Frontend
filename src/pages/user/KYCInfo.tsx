@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowRight, MapPin, AlertCircle } from 'lucide-react';
-
 export const KYCInfo = () => {
   const navigate = useNavigate();
   const [error, setError] = useState('');
@@ -15,17 +14,13 @@ export const KYCInfo = () => {
     province: '',
     country: 'Pakistan',
   });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
     if (!formData.city || !formData.province || !formData.country) {
       setError('Please fill in all location fields');
       return;
     }
-
-    // Navigate to document upload page with location data
     navigate('/kyc/documents', {
       state: {
         location: {
@@ -36,11 +31,10 @@ export const KYCInfo = () => {
       },
     });
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8">
       <div className="max-w-3xl mx-auto">
-        {/* Progress Indicator */}
+        {}
         <div className="mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="flex items-center gap-2">
@@ -58,7 +52,6 @@ export const KYCInfo = () => {
             </div>
           </div>
         </div>
-
         <Card className="shadow-xl border-0">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3 mb-2">
@@ -81,7 +74,6 @@ export const KYCInfo = () => {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="city" className="text-sm font-semibold text-gray-700">
@@ -100,7 +92,6 @@ export const KYCInfo = () => {
                     className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="province" className="text-sm font-semibold text-gray-700">
                     Province <span className="text-red-500">*</span>
@@ -118,7 +109,6 @@ export const KYCInfo = () => {
                     className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="country" className="text-sm font-semibold text-gray-700">
                     Country <span className="text-red-500">*</span>
@@ -137,7 +127,6 @@ export const KYCInfo = () => {
                   />
                 </div>
               </div>
-
               <div className="flex justify-end pt-6 border-t border-gray-200">
                 <Button 
                   type="submit" 
@@ -150,8 +139,7 @@ export const KYCInfo = () => {
             </form>
           </CardContent>
         </Card>
-
-        {/* Help Text */}
+        {}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500">
             This information is required for KYC verification. All fields are mandatory.
@@ -161,4 +149,3 @@ export const KYCInfo = () => {
     </div>
   );
 };
-

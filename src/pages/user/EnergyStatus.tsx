@@ -16,7 +16,6 @@ import {
   ExternalLink,
   Upload,
 } from 'lucide-react';
-
 const getStatusBadge = (status: EnergyRequest['status']) => {
   switch (status) {
     case 'PENDING':
@@ -58,12 +57,10 @@ const getStatusBadge = (status: EnergyRequest['status']) => {
       return <Badge>{status}</Badge>;
   }
 };
-
 const getMonthName = (month: number) => {
   const date = new Date(2000, month - 1, 1);
   return date.toLocaleString('default', { month: 'long' });
 };
-
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -73,23 +70,19 @@ const formatDate = (dateString: string) => {
     minute: '2-digit',
   });
 };
-
 export const EnergyStatus = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<EnergyRequest[]>([]);
-
   useEffect(() => {
     loadStatus();
   }, []);
-
   const loadStatus = async () => {
     setLoading(true);
     try {
       const response = await energyApi.getStatus();
       setRequests(response.requests.sort((a, b) => {
-        // Sort by year desc, then month desc
         if (b.year !== a.year) return b.year - a.year;
         return b.month - a.month;
       }));
@@ -104,7 +97,6 @@ export const EnergyStatus = () => {
       setLoading(false);
     }
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -115,7 +107,6 @@ export const EnergyStatus = () => {
       </div>
     );
   }
-
   if (requests.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-8">
@@ -128,7 +119,6 @@ export const EnergyStatus = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
-
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Energy Generation Requests</CardTitle>
@@ -147,7 +137,6 @@ export const EnergyStatus = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -164,7 +153,6 @@ export const EnergyStatus = () => {
             Refresh
           </Button>
         </div>
-
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-2xl">Energy Generation Requests</CardTitle>
@@ -173,7 +161,6 @@ export const EnergyStatus = () => {
             </CardDescription>
           </CardHeader>
         </Card>
-
         <div className="space-y-4">
           {requests.map((request) => (
             <Card key={request.id}>
@@ -206,7 +193,6 @@ export const EnergyStatus = () => {
                     </div>
                   </div>
                 )}
-
                 {request.status === 'APPROVED' && (
                   <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-start gap-3">
@@ -221,7 +207,6 @@ export const EnergyStatus = () => {
                     </div>
                   </div>
                 )}
-
                 {request.status === 'REJECTED' && (
                   <div className="space-y-4">
                     <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -249,7 +234,6 @@ export const EnergyStatus = () => {
                     </Button>
                   </div>
                 )}
-
                 {request.status === 'REWARD_GENERATED' && (
                   <div className="p-4 bg-green-50 border border-green-200 rounded-lg space-y-3">
                     <div className="flex items-start gap-3">
@@ -290,7 +274,6 @@ export const EnergyStatus = () => {
                     </div>
                   </div>
                 )}
-
                 {request.status === 'BLOCKCHAIN_FAILED' && (
                   <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                     <div className="flex items-start gap-3">
@@ -332,7 +315,6 @@ export const EnergyStatus = () => {
             </Card>
           ))}
         </div>
-
         <div className="mt-6">
           <Button
             onClick={() => navigate('/energy/upload')}
@@ -359,4 +341,3 @@ export const EnergyStatus = () => {
     </div>
   );
 };
-

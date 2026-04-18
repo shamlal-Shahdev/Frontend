@@ -1,6 +1,6 @@
 export const API_CONFIG = {
   baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000',
-  timeout: 30000, // 30 seconds
+  timeout: 30000, 
   retryAttempts: 3,
   endpoints: {
     auth: {
@@ -15,6 +15,5 @@ export const API_CONFIG = {
       updateProfile: '/users/profile',
       changePassword: '/users/change-password',
     },
-    // Add more endpoint configurations as needed
   },
 } as const;

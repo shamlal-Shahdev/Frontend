@@ -23,7 +23,6 @@ import {
   Calendar,
   MapPin
 } from 'lucide-react';
-
 interface UserWithKyc {
   id: number;
   name: string;
@@ -48,7 +47,6 @@ interface UserWithKyc {
   }>;
   kycDocumentsCount: number;
 }
-
 export const KYCReview = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -62,18 +60,15 @@ export const KYCReview = () => {
   const [error, setError] = useState('');
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
-
   useEffect(() => {
     loadUsersWithKyc();
   }, []);
-
   const loadUsersWithKyc = async () => {
     setLoading(true);
     setError('');
     try {
       const response = await adminApi.getUsersWithKyc();
       console.log('KYC Users Response:', response);
-      // Ensure kycDocuments is an array for each user
       const usersWithDocuments = (response.users || []).map(user => ({
         ...user,
         kycDocuments: Array.isArray(user.kycDocuments) ? user.kycDocuments : []
@@ -86,16 +81,13 @@ export const KYCReview = () => {
       setLoading(false);
     }
   };
-
   const handleApproveClick = (userId: number) => {
     setSelectedUserId(userId);
     setApprovalNote('');
     setApproveModalOpen(true);
   };
-
   const handleApproveSubmit = async () => {
     if (!selectedUserId) return;
-
     setIsApproving(true);
     try {
       await adminApi.approveKyc(selectedUserId, approvalNote ? { note: approvalNote } : undefined);
@@ -119,13 +111,11 @@ export const KYCReview = () => {
       setIsApproving(false);
     }
   };
-
   const handleRejectClick = (userId: number) => {
     setSelectedUserId(userId);
     setRejectionReason('');
     setRejectModalOpen(true);
   };
-
   const handleRejectSubmit = async () => {
     if (!selectedUserId || !rejectionReason.trim()) {
       toast({
@@ -135,7 +125,6 @@ export const KYCReview = () => {
       });
       return;
     }
-
     setIsRejecting(true);
     try {
       await adminApi.rejectKyc(selectedUserId, { reason: rejectionReason });
@@ -159,7 +148,6 @@ export const KYCReview = () => {
       setIsRejecting(false);
     }
   };
-
   const getStatusBadgeColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'approved':
@@ -175,11 +163,9 @@ export const KYCReview = () => {
         return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
-
   const formatStatusText = (status: string) => {
     return status?.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || status;
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -190,11 +176,9 @@ export const KYCReview = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center gap-3">
@@ -214,7 +198,6 @@ export const KYCReview = () => {
           </div>
           <p className="text-gray-600 ml-12">Review and manage user KYC verifications</p>
         </div>
-
         {error && (
           <Card className="mb-6 border-red-200 bg-red-50 shadow-sm">
             <CardContent className="p-4">
@@ -225,7 +208,6 @@ export const KYCReview = () => {
             </CardContent>
           </Card>
         )}
-
         {users.length === 0 ? (
           <Card className="shadow-lg">
             <CardContent className="p-12 text-center">
@@ -402,7 +384,6 @@ export const KYCReview = () => {
           </div>
         )}
       </div>
-
       {/* Approve Modal */}
       {approveModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -463,8 +444,6 @@ export const KYCReview = () => {
           </Card>
         </div>
       )}
-
-      {/* Reject Modal */}
       {rejectModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <Card className="w-full max-w-md shadow-2xl border-0">
@@ -529,7 +508,3 @@ export const KYCReview = () => {
     </div>
   );
 };
-
-
-
-

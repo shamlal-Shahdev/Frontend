@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, CheckCircle, XCircle, FileCheck, Loader2 } from 'lucide-react';
-
 interface KycEntity {
   id: number;
   userId: number;
@@ -16,6 +15,7 @@ interface KycEntity {
   CnicBackUrl: string;
   SelfieUrl: string;
   UtilityBillUrl: string;
+  utilityMeterReference?: string | null;
   city: string;
   province: string;
   country: string;
@@ -33,13 +33,11 @@ interface KycEntity {
     updatedAt: string;
   };
 }
-
 interface UserDocumentsResponse {
   documents: KycEntity[];
   userId: number;
   total: number;
 }
-
 export const KYCDetail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -55,29 +53,21 @@ export const KYCDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
-
   useEffect(() => {
     if (userId) {
       loadUserDetails();
     }
   }, [userId]);
-
   const loadUserDetails = async () => {
     if (!userId) return;
-    
     setLoading(true);
     setError('');
     try {
-      // Get user documents
       const documentsResponse = await adminApi.getUserDocuments(parseInt(userId));
       console.log('Documents Response:', documentsResponse);
-      
-      // Get the most recent KYC document (first one in the array)
       if (documentsResponse.documents && documentsResponse.documents.length > 0) {
         const kyc = documentsResponse.documents[0];
         setKycData(kyc);
-        
-        // Set user details from the KYC document
         if (kyc.user) {
           setUserDetails({
             id: kyc.user.id,
@@ -91,7 +81,6 @@ export const KYCDetail = () => {
           });
         }
       } else {
-        // Fallback: get user details from users list
         const usersResponse = await adminApi.getUsersWithKyc();
         const user = usersResponse.users.find(u => u.id === parseInt(userId));
         if (user) {
@@ -114,15 +103,12 @@ export const KYCDetail = () => {
       setLoading(false);
     }
   };
-
   const handleApproveClick = () => {
     setApprovalNote('');
     setApproveModalOpen(true);
   };
-
   const handleApproveSubmit = async () => {
     if (!userId) return;
-
     setIsApproving(true);
     setSubmitting(true);
     try {
@@ -134,7 +120,6 @@ export const KYCDetail = () => {
       });
       setApproveModalOpen(false);
       setApprovalNote('');
-      // Navigate after a short delay to show the toast
       setTimeout(() => {
         navigate('/admin/kyc');
       }, 1500);
@@ -150,12 +135,10 @@ export const KYCDetail = () => {
       setSubmitting(false);
     }
   };
-
   const handleRejectClick = () => {
     setRejectionReason('');
     setRejectModalOpen(true);
   };
-
   const handleRejectSubmit = async () => {
     if (!userId || !rejectionReason.trim()) {
       toast({
@@ -165,7 +148,6 @@ export const KYCDetail = () => {
       });
       return;
     }
-
     setIsRejecting(true);
     setSubmitting(true);
     try {
@@ -177,7 +159,6 @@ export const KYCDetail = () => {
       });
       setRejectModalOpen(false);
       setRejectionReason('');
-      // Navigate after a short delay to show the toast
       setTimeout(() => {
         navigate('/admin/kyc');
       }, 1500);
@@ -193,7 +174,6 @@ export const KYCDetail = () => {
       setSubmitting(false);
     }
   };
-
   const getStatusBadgeColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'approved':
@@ -207,44 +187,27 @@ export const KYCDetail = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-
   const formatDocType = (docType: string | undefined) => {
     if (!docType) return 'Document';
     return docType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
-
   const getImageUrl = (filePath: string | undefined | null) => {
     if (!filePath) return '';
-    
-    // Fix backslashes to forward slashes (Windows path issue)
     let normalizedPath = filePath.replace(/\\/g, '/');
-    
-    // If already a full URL, return as is (with normalized slashes)
     if (normalizedPath.startsWith('http://') || normalizedPath.startsWith('https://')) {
       return normalizedPath;
     }
-    
-    // Get base URL from environment or default
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-    
-    // Remove /api/v1 prefix if present (it might be in the stored path)
     if (normalizedPath.startsWith('/api/v1/')) {
       normalizedPath = normalizedPath.replace('/api/v1/', '');
     }
-    
-    // If filePath starts with /, remove it (we'll add it back with the correct prefix)
     if (normalizedPath.startsWith('/')) {
       normalizedPath = normalizedPath.substring(1);
     }
-    
-    // Construct the correct URL: baseUrl/api/v1/files/path
     return `${baseUrl}/api/v1/files/${normalizedPath}`;
   };
-
-  // Create document array from KYC entity
   const getDocuments = () => {
     if (!kycData) return [];
-    
     const docs = [];
     if (kycData.CnicFrontUrl) {
       docs.push({
@@ -280,7 +243,6 @@ export const KYCDetail = () => {
     }
     return docs;
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -288,7 +250,6 @@ export const KYCDetail = () => {
       </div>
     );
   }
-
   if (error && !userDetails) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -301,11 +262,9 @@ export const KYCDetail = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <Button
             variant="outline"
@@ -316,8 +275,6 @@ export const KYCDetail = () => {
             Back to KYC Review
           </Button>
         </div>
-
-        {/* User Information Card */}
         {userDetails && (
           <Card className="mb-6 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
@@ -356,8 +313,6 @@ export const KYCDetail = () => {
             </CardHeader>
           </Card>
         )}
-
-        {/* Documents Grid */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">KYC Documents</h2>
@@ -376,7 +331,6 @@ export const KYCDetail = () => {
             </Card>
           ) : (
             <>
-              {/* Location and Submission Info */}
               <Card className="mb-6 shadow-md">
                 <CardContent className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -386,6 +340,12 @@ export const KYCDetail = () => {
                         <span className="text-gray-600">
                           {[kycData.city, kycData.province, kycData.country].filter(Boolean).join(', ')}
                         </span>
+                      </div>
+                    )}
+                    {kycData.utilityMeterReference && (
+                      <div>
+                        <span className="font-semibold text-gray-700">Bill meter ref: </span>
+                        <span className="text-gray-600 font-mono">{kycData.utilityMeterReference}</span>
                       </div>
                     )}
                     {kycData.submittedAt && (
@@ -415,8 +375,6 @@ export const KYCDetail = () => {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Documents Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {getDocuments().map((doc) => (
                   <Card key={doc.id} className="overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-200">
@@ -426,7 +384,6 @@ export const KYCDetail = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4">
-                      {/* Document Image */}
                       <div className="bg-gray-100 rounded-lg p-2 border-2 border-gray-200">
                         <a
                           href={getImageUrl(doc.url)}
@@ -461,8 +418,6 @@ export const KYCDetail = () => {
             </>
           )}
         </div>
-
-        {/* Action Buttons at Bottom */}
         {userDetails && (userDetails.kycStatus === 'pending' || userDetails.kycStatus === 'in_review') && (
           <Card className="sticky bottom-4 bg-white border-2 border-gray-300 shadow-2xl">
             <CardContent className="p-6">
@@ -496,8 +451,6 @@ export const KYCDetail = () => {
           </Card>
         )}
       </div>
-
-      {/* Approve Modal */}
       {approveModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <Card className="w-full max-w-md">
@@ -552,8 +505,6 @@ export const KYCDetail = () => {
           </Card>
         </div>
       )}
-
-      {/* Reject Modal */}
       {rejectModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <Card className="w-full max-w-md">
@@ -613,4 +564,3 @@ export const KYCDetail = () => {
     </div>
   );
 };
-

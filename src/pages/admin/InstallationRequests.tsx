@@ -23,14 +23,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 interface InstallationEntity {
   id: number;
   userId: number;
   name: string;
   installationType: string;
   capacityKw: number;
+  propertySegment?: string;
   location: string;
+  latitude?: number | null;
+  longitude?: number | null;
   status: 'submitted' | 'assigned' | 'in_progress' | 'completed' | 'rejected';
   isActive: boolean;
   registeredAt: string;
@@ -48,14 +50,12 @@ interface InstallationEntity {
     email: string;
   } | null;
 }
-
 interface Vendor {
   id: number;
   name: string;
   email: string;
   phone: string;
 }
-
 export const InstallationRequests = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -70,12 +70,10 @@ export const InstallationRequests = () => {
   const [loadingVendors, setLoadingVendors] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState<string>('');
   const [assigning, setAssigning] = useState(false);
-
   useEffect(() => {
     loadInstallations();
     loadVendors();
   }, [page]);
-
   const loadInstallations = async () => {
     setLoading(true);
     setError('');
@@ -90,7 +88,6 @@ export const InstallationRequests = () => {
       setLoading(false);
     }
   };
-
   const loadVendors = async () => {
     setLoadingVendors(true);
     try {
@@ -102,8 +99,6 @@ export const InstallationRequests = () => {
       setLoadingVendors(false);
     }
   };
-
-
   const handleViewDetails = async (installation: InstallationEntity) => {
     try {
       const fullDetails = await adminApi.getInstallationById(installation.id);
@@ -114,7 +109,6 @@ export const InstallationRequests = () => {
       alert('Failed to load installation details');
     }
   };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
@@ -160,7 +154,6 @@ export const InstallationRequests = () => {
         );
     }
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -170,7 +163,6 @@ export const InstallationRequests = () => {
       minute: '2-digit',
     });
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -178,7 +170,6 @@ export const InstallationRequests = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
@@ -189,13 +180,11 @@ export const InstallationRequests = () => {
             Back to Dashboard
           </Button>
         </div>
-
         {error && (
           <Card className="mb-6 border-red-200 bg-red-50">
             <CardContent className="p-4 text-red-700">{error}</CardContent>
           </Card>
         )}
-
         <Card>
           <CardHeader>
             <CardTitle>All Installation Requests ({total})</CardTitle>
@@ -233,7 +222,14 @@ export const InstallationRequests = () => {
                               <div className="text-sm text-gray-500">{installation.user?.email || ''}</div>
                             </div>
                           </td>
-                          <td className="py-3 px-4">{installation.capacityKw} kWh</td>
+                          <td className="py-3 px-4">
+                            {installation.capacityKw} kW
+                            {installation.propertySegment && (
+                              <div className="text-xs text-gray-500 capitalize">
+                                {installation.propertySegment.replace(/_/g, ' ')}
+                              </div>
+                            )}
+                          </td>
                           <td className="py-3 px-4">
                             <div className="max-w-xs truncate" title={installation.location}>
                               {installation.location}
@@ -269,8 +265,6 @@ export const InstallationRequests = () => {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Pagination */}
                 {total > limit && (
                   <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
                     <div className="text-sm text-gray-500">
@@ -301,8 +295,6 @@ export const InstallationRequests = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Details Modal */}
       {detailsModalOpen && selectedInstallation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -334,17 +326,27 @@ export const InstallationRequests = () => {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-500">Capacity</label>
-                  <p className="mt-1">{selectedInstallation.capacityKw} kWh</p>
+                  <p className="mt-1">{selectedInstallation.capacityKw} kW</p>
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-500">Active</label>
                   <p className="mt-1">{selectedInstallation.isActive ? 'Yes' : 'No'}</p>
                 </div>
               </div>
-
               <div>
                 <label className="text-sm font-semibold text-gray-500">Location</label>
                 <p className="mt-1">{selectedInstallation.location}</p>
+                {selectedInstallation.latitude != null &&
+                  selectedInstallation.longitude != null && (
+                    <a
+                      href={`https://www.openstreetmap.org/?mlat=${selectedInstallation.latitude}&mlon=${selectedInstallation.longitude}#map=16/${selectedInstallation.latitude}/${selectedInstallation.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:underline mt-1 inline-block"
+                    >
+                      Open on map
+                    </a>
+                  )}
               </div>
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-3">User Information</h3>
@@ -363,7 +365,6 @@ export const InstallationRequests = () => {
                   </div>
                 </div>
               </div>
-
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-3">Timestamps</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -386,4 +387,3 @@ export const InstallationRequests = () => {
     </div>
   );
 };
-

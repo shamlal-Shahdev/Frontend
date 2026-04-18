@@ -4,14 +4,12 @@ import { vendorApi } from '@/api/vendor.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Zap, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 const logoUrl = '/Assets/logo.png';
-
 export const VendorRegister = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,7 +21,6 @@ export const VendorRegister = () => {
     phone: '',
     companyName: '',
   });
-
   const validateEmail = (email: string): string | null => {
     if (!email.trim()) {
       return 'Email is required';
@@ -34,14 +31,12 @@ export const VendorRegister = () => {
     }
     return null;
   };
-
   const validatePassword = (password: string): string | null => {
     if (password.length < 6) {
       return 'Password must be at least 6 characters long';
     }
     return null;
   };
-
   const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value === '' || /^[a-zA-Z\s'-]*$/.test(value)) {
@@ -49,7 +44,6 @@ export const VendorRegister = () => {
       if (error) setError('');
     }
   };
-
   const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value === '' || /^[a-zA-Z\s'-]*$/.test(value)) {
@@ -57,98 +51,48 @@ export const VendorRegister = () => {
       if (error) setError('');
     }
   };
-
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
     setFormData({ ...formData, phone: digitsOnly });
     if (error) setError('');
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
     const emailError = validateEmail(formData.email);
     if (emailError) {
       setError(emailError);
       return;
     }
-    
     const passwordError = validatePassword(formData.password);
     if (passwordError) {
       setError(passwordError);
       return;
     }
-    
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-
     if (formData.phone.length < 10) {
       setError('Phone number must be exactly 10 digits');
       return;
     }
-
     if (!formData.companyName.trim()) {
       setError('Company name is required');
       return;
     }
-
     setLoading(true);
-
     try {
       const { confirmPassword, ...registerData } = formData;
       registerData.phone = `+92${registerData.phone}`;
       await vendorApi.register(registerData);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/vendor/login');
-      }, 3000);
+      navigate('/vendor/email-verification-sent', { state: { email: formData.email } });
     } catch (err: any) {
       setError(err.response?.data?.message || 'This email is already registered. Please use a different email.');
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
-            </div>
-            
-          </div>
-
-          <Card className="shadow-xl border-0">
-            <CardContent className="pt-8 pb-6 px-8">
-              <div className="text-center mb-6">
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  </div>
-                </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Registration Successful!</h2>
-                <p className="text-gray-600">
-                  Please check your email <span className="font-semibold text-gray-800">{formData.email}</span> for verification.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm text-center">
-                  Redirecting to login page...
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8">
       <div className="w-full max-w-lg">
@@ -156,23 +100,19 @@ export const VendorRegister = () => {
           <div className="flex justify-center mb-4">
             <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
           </div>
-          
         </div>
-
         <Card className="shadow-xl border-0">
           <CardContent className="pt-8 pb-6 px-8">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-1">Vendor Account</h2>
               <p className="text-gray-500">Create your vendor account</p>
             </div>
-
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
@@ -184,7 +124,6 @@ export const VendorRegister = () => {
                     className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
                   <Input
@@ -196,7 +135,6 @@ export const VendorRegister = () => {
                   />
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
                 <Input
@@ -211,7 +149,6 @@ export const VendorRegister = () => {
                   className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
                 <div className="flex">
@@ -229,7 +166,6 @@ export const VendorRegister = () => {
                   />
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Solar Company Name</label>
                 <Input
@@ -243,7 +179,6 @@ export const VendorRegister = () => {
                   className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
                 <div className="relative">
@@ -273,7 +208,6 @@ export const VendorRegister = () => {
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Must be at least 6 characters</p>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
                 <div className="relative">
@@ -302,7 +236,6 @@ export const VendorRegister = () => {
                   </button>
                 </div>
               </div>
-
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200 mt-6" 
@@ -318,7 +251,6 @@ export const VendorRegister = () => {
                   </span>
                 ) : 'Register as Vendor'}
               </Button>
-
               <p className="text-center text-sm text-gray-600 pt-2">
                 Already have an account?{' '}
                 <Link to="/vendor/login" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
@@ -332,5 +264,3 @@ export const VendorRegister = () => {
     </div>
   );
 };
-
-

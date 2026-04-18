@@ -14,9 +14,7 @@ import {
   CheckCircle,
   Zap
 } from 'lucide-react';
-
 const logoUrl = '/Assets/logo.png';
-
 export const Profile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -28,11 +26,9 @@ export const Profile = () => {
     name: '',
     phone: '',
   });
-
   useEffect(() => {
     loadProfile();
   }, []);
-
   const loadProfile = async () => {
     try {
       const data = await profileApi.getProfile();
@@ -47,13 +43,10 @@ export const Profile = () => {
       setLoading(false);
     }
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    
-    // Validate phone number if provided
     if (formData.phone && formData.phone.trim() !== '') {
       const phoneDigits = formData.phone.replace(/\D/g, '');
       if (phoneDigits.length !== 11) {
@@ -61,38 +54,30 @@ export const Profile = () => {
         return;
       }
     }
-    
     setUpdating(true);
-
     try {
       console.log('Updating profile with data:', formData);
       const updated = await profileApi.updateProfile(formData);
       console.log('Profile updated successfully:', updated);
       setProfile(updated);
       setSuccess('Profile updated successfully!');
-      
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
       console.error('Profile update error:', err);
       console.error('Error response:', err.response);
-      
       const errorMessage = err.response?.data?.message 
         || (Array.isArray(err.response?.data?.message) ? err.response.data.message.join(', ') : null)
         || err.message 
         || 'Failed to update profile';
-      
       setError(errorMessage);
     } finally {
       setUpdating(false);
     }
   };
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -100,10 +85,9 @@ export const Profile = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation */}
+      {}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -121,16 +105,14 @@ export const Profile = () => {
           </div>
         </div>
       </nav>
-
-      {/* Main Content */}
+      {}
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
           <p className="text-gray-500 mt-1">View and update your account information</p>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Profile Info Card */}
+          {}
           <Card className="lg:col-span-1">
             <CardHeader>
               <CardTitle className="text-lg">Account Info</CardTitle>
@@ -145,7 +127,6 @@ export const Profile = () => {
                   <p className="text-sm text-gray-500">{profile?.role}</p>
                 </div>
               </div>
-
               <div className="pt-4 border-t space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-green-500" />
@@ -156,7 +137,6 @@ export const Profile = () => {
                   <span className="text-gray-600">KYC Approved</span>
                 </div>
               </div>
-
               <div className="pt-4 border-t">
                 <p className="text-xs text-gray-500">Member Since</p>
                 <p className="text-sm font-medium text-gray-700">
@@ -165,8 +145,7 @@ export const Profile = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Edit Profile Form */}
+          {}
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-lg">Edit Profile</CardTitle>
@@ -178,7 +157,6 @@ export const Profile = () => {
                     <AlertDescription className="text-red-700">{error}</AlertDescription>
                   </Alert>
                 )}
-
                 {success && (
                   <Alert className="bg-green-50 border-green-200">
                     <AlertDescription className="text-green-700 flex items-center gap-2">
@@ -187,8 +165,7 @@ export const Profile = () => {
                     </AlertDescription>
                   </Alert>
                 )}
-
-                {/* Name Field */}
+                {}
                 <div>
                   <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                     <User className="w-4 h-4 text-gray-500" />
@@ -207,8 +184,7 @@ export const Profile = () => {
                     placeholder="Enter your full name"
                   />
                 </div>
-
-                {/* Email Field (Read-only) */}
+                {}
                 <div>
                   <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                     <Mail className="w-4 h-4 text-gray-500" />
@@ -227,8 +203,7 @@ export const Profile = () => {
                     Email cannot be changed as it is verified
                   </p>
                 </div>
-
-                {/* Phone Field */}
+                {}
                 <div>
                   <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                     <Phone className="w-4 h-4 text-gray-500" />
@@ -240,7 +215,6 @@ export const Profile = () => {
                     value={formData.phone}
                     onChange={(e) => {
                       const value = e.target.value;
-                      // Only allow digits and limit to 11 digits
                       const digitsOnly = value.replace(/\D/g, '').slice(0, 11);
                       setFormData({ ...formData, phone: digitsOnly });
                       setError('');
@@ -252,8 +226,7 @@ export const Profile = () => {
                     Optional - Must be exactly 11 digits (e.g., 03001234567)
                   </p>
                 </div>
-
-                {/* Submit Button */}
+                {}
                 <div className="flex gap-3 pt-4">
                   <Button 
                     type="submit" 
@@ -278,4 +251,3 @@ export const Profile = () => {
     </div>
   );
 };
-

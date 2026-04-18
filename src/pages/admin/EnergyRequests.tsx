@@ -29,7 +29,6 @@ import {
   Filter,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
 const getStatusBadge = (status: EnergyRequest['status']) => {
   switch (status) {
     case 'PENDING':
@@ -71,12 +70,10 @@ const getStatusBadge = (status: EnergyRequest['status']) => {
       return <Badge>{status}</Badge>;
   }
 };
-
 const getMonthName = (month: number) => {
   const date = new Date(2000, month - 1, 1);
   return date.toLocaleString('default', { month: 'long' });
 };
-
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -86,42 +83,46 @@ const formatDate = (dateString: string) => {
     minute: '2-digit',
   });
 };
-
+const crosscheckLabel = (v: EnergyRequest['kycMeterCrosscheck']) => {
+  switch (v) {
+    case 'match':
+      return { text: 'KYC meter: match', className: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
+    case 'mismatch':
+      return { text: 'KYC meter: mismatch', className: 'bg-red-50 text-red-800 border-red-200' };
+    case 'no_kyc_reference':
+      return { text: 'No KYC meter ref', className: 'bg-gray-50 text-gray-700 border-gray-200' };
+    case 'skipped':
+      return { text: 'Meter ID not detected', className: 'bg-amber-50 text-amber-900 border-amber-200' };
+    default:
+      return null;
+  }
+};
 const getImageUrl = (filePath: string | undefined | null) => {
   console.log('[getImageUrl] Input filePath:', filePath);
-  
   if (!filePath) {
     console.log('[getImageUrl] No filePath provided, returning empty string');
     return '';
   }
-  
   let normalizedPath = filePath.replace(/\\/g, '/');
   console.log('[getImageUrl] After backslash normalization:', normalizedPath);
-  
   if (normalizedPath.startsWith('http://') || normalizedPath.startsWith('https://')) {
     console.log('[getImageUrl] Already a full URL, returning as is:', normalizedPath);
     return normalizedPath;
   }
-  
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   console.log('[getImageUrl] Base URL:', baseUrl);
-  
   if (normalizedPath.startsWith('/api/v1/')) {
     normalizedPath = normalizedPath.replace('/api/v1/', '');
     console.log('[getImageUrl] After removing /api/v1/ prefix:', normalizedPath);
   }
-  
   if (normalizedPath.startsWith('/')) {
     normalizedPath = normalizedPath.substring(1);
     console.log('[getImageUrl] After removing leading slash:', normalizedPath);
   }
-  
   const finalUrl = `${baseUrl}/api/v1/files/${normalizedPath}`;
   console.log('[getImageUrl] Final constructed URL:', finalUrl);
-  
   return finalUrl;
 };
-
 export const EnergyRequests = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -138,15 +139,12 @@ export const EnergyRequests = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
-
   useEffect(() => {
     loadRequests();
   }, []);
-
   useEffect(() => {
     filterRequests();
   }, [requests, activeTab]);
-
   const loadRequests = async () => {
     setLoading(true);
     try {
@@ -163,7 +161,6 @@ export const EnergyRequests = () => {
       setLoading(false);
     }
   };
-
   const filterRequests = () => {
     if (activeTab === 'all') {
       setFilteredRequests(requests);
@@ -177,22 +174,18 @@ export const EnergyRequests = () => {
       setFilteredRequests(requests.filter((r) => r.status === status));
     }
   };
-
   const handleViewImage = (request: EnergyRequest) => {
     setSelectedRequest(request);
     setViewImageOpen(true);
   };
-
   const handleApproveClick = (request: EnergyRequest) => {
     setSelectedRequest(request);
     setApprovalNote('');
     setRewardAmount('');
     setApproveDialogOpen(true);
   };
-
   const handleApproveSubmit = async () => {
     if (!selectedRequest) return;
-
     setIsApproving(true);
     try {
       const dto: any = {};
@@ -202,7 +195,6 @@ export const EnergyRequests = () => {
       if (rewardAmount.trim()) {
         dto.rewardAmount = parseFloat(rewardAmount);
       }
-
       await adminEnergyApi.approve(selectedRequest.id, dto);
       toast({
         title: 'Success!',
@@ -226,13 +218,11 @@ export const EnergyRequests = () => {
       setIsApproving(false);
     }
   };
-
   const handleRejectClick = (request: EnergyRequest) => {
     setSelectedRequest(request);
     setRejectionReason('');
     setRejectDialogOpen(true);
   };
-
   const handleRejectSubmit = async () => {
     if (!selectedRequest || !rejectionReason.trim()) {
       toast({
@@ -242,7 +232,6 @@ export const EnergyRequests = () => {
       });
       return;
     }
-
     setIsRejecting(true);
     try {
       await adminEnergyApi.reject(selectedRequest.id, { reason: rejectionReason });
@@ -267,7 +256,6 @@ export const EnergyRequests = () => {
       setIsRejecting(false);
     }
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -278,7 +266,6 @@ export const EnergyRequests = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="max-w-7xl mx-auto">
@@ -292,7 +279,6 @@ export const EnergyRequests = () => {
             Refresh
           </Button>
         </div>
-
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-2xl">Energy Generation Requests</CardTitle>
@@ -301,7 +287,6 @@ export const EnergyRequests = () => {
             </CardDescription>
           </CardHeader>
         </Card>
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="pending">
@@ -315,7 +300,6 @@ export const EnergyRequests = () => {
             </TabsTrigger>
             <TabsTrigger value="all">All ({requests.length})</TabsTrigger>
           </TabsList>
-
           <TabsContent value={activeTab} className="mt-6">
             {filteredRequests.length === 0 ? (
               <Card>
@@ -325,7 +309,9 @@ export const EnergyRequests = () => {
               </Card>
             ) : (
               <div className="space-y-4">
-                {filteredRequests.map((request) => (
+                {filteredRequests.map((request) => {
+                  const crosscheck = crosscheckLabel(request.kycMeterCrosscheck);
+                  return (
                   <Card key={request.id}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
@@ -342,10 +328,42 @@ export const EnergyRequests = () => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-2 gap-4 text-sm">
+                        {crosscheck && (
+                          <div className="col-span-2">
+                            <Badge
+                              variant="outline"
+                              className={crosscheck.className}
+                            >
+                              {crosscheck.text}
+                            </Badge>
+                          </div>
+                        )}
+                        {request.ocrMeterIdCandidate && (
+                          <div>
+                            <p className="text-gray-500">OCR meter candidate:</p>
+                            <p className="font-mono text-sm">{request.ocrMeterIdCandidate}</p>
+                          </div>
+                        )}
+                        {request.ocrAvgConfidence != null && (
+                          <div>
+                            <p className="text-gray-500">OCR avg. confidence:</p>
+                            <p className="font-medium">{request.ocrAvgConfidence}%</p>
+                          </div>
+                        )}
                         {request.meterIdFromImage && (
                           <div>
-                            <p className="text-gray-500">Meter ID:</p>
+                            <p className="text-gray-500">Meter ID (stored):</p>
                             <p className="font-medium">{request.meterIdFromImage}</p>
+                          </div>
+                        )}
+                        {request.ocrRawText && (
+                          <div className="col-span-2">
+                            <p className="text-gray-500 mb-1">OCR raw text (truncated):</p>
+                            <pre className="text-xs bg-gray-100 p-2 rounded max-h-32 overflow-auto whitespace-pre-wrap">
+                              {request.ocrRawText.length > 800
+                                ? `${request.ocrRawText.slice(0, 800)}…`
+                                : request.ocrRawText}
+                            </pre>
                           </div>
                         )}
                         {request.rewardAmount && (
@@ -363,14 +381,12 @@ export const EnergyRequests = () => {
                           </div>
                         )}
                       </div>
-
                       {request.adminRemark && (
                         <div className="p-3 bg-gray-50 rounded border">
                           <p className="text-xs font-semibold text-gray-700 mb-1">Admin Remark:</p>
                           <p className="text-sm text-gray-600">{request.adminRemark}</p>
                         </div>
                       )}
-
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
@@ -404,13 +420,12 @@ export const EnergyRequests = () => {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                );
+                })}
               </div>
             )}
           </TabsContent>
         </Tabs>
-
-        {/* View Image Dialog */}
         <Dialog open={viewImageOpen} onOpenChange={setViewImageOpen}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
@@ -434,8 +449,6 @@ export const EnergyRequests = () => {
             )}
           </DialogContent>
         </Dialog>
-
-        {/* Approve Dialog */}
         <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -499,8 +512,6 @@ export const EnergyRequests = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        {/* Reject Dialog */}
         <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -558,4 +569,3 @@ export const EnergyRequests = () => {
     </div>
   );
 };
-

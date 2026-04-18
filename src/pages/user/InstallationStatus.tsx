@@ -25,7 +25,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-
 interface InstallationEntity {
   id: number;
   userId: number;
@@ -51,7 +50,6 @@ interface InstallationEntity {
     companyName?: string | null;
   } | null;
 }
-
 export const InstallationStatus = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -64,11 +62,9 @@ export const InstallationStatus = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedInstallationId, setSelectedInstallationId] = useState<number | null>(null);
   const [cancelling, setCancelling] = useState(false);
-
   useEffect(() => {
     loadInstallations();
   }, [page]);
-
   const loadInstallations = async () => {
     setLoading(true);
     setError('');
@@ -88,15 +84,12 @@ export const InstallationStatus = () => {
       setLoading(false);
     }
   };
-
   const handleCancelClick = (id: number) => {
     setSelectedInstallationId(id);
     setCancelDialogOpen(true);
   };
-
   const handleCancelConfirm = async () => {
     if (!selectedInstallationId) return;
-
     setCancelling(true);
     try {
       await installationApi.cancel(selectedInstallationId);
@@ -119,7 +112,6 @@ export const InstallationStatus = () => {
       setCancelling(false);
     }
   };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
@@ -165,7 +157,6 @@ export const InstallationStatus = () => {
         );
     }
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -175,7 +166,6 @@ export const InstallationStatus = () => {
       minute: '2-digit',
     });
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -183,10 +173,9 @@ export const InstallationStatus = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation */}
+      {}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -198,21 +187,18 @@ export const InstallationStatus = () => {
           </Button>
         </div>
       </nav>
-
-      {/* Main Content */}
+      {}
       <div className="container mx-auto py-8 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900">Installation Status</h1>
             <p className="text-gray-500 mt-1">View and manage your installation requests</p>
           </div>
-
           {error && (
             <Card className="mb-6 border-red-200 bg-red-50">
               <CardContent className="p-4 text-red-700">{error}</CardContent>
             </Card>
           )}
-
           {installations.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
@@ -298,7 +284,6 @@ export const InstallationStatus = () => {
                       </tbody>
                     </table>
                   </div>
-
                   {/* Pagination */}
                   {total > limit && (
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
@@ -331,7 +316,6 @@ export const InstallationStatus = () => {
           )}
         </div>
       </div>
-
       {/* Cancel Confirmation Dialog */}
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <AlertDialogContent>
@@ -356,5 +340,3 @@ export const InstallationStatus = () => {
     </div>
   );
 };
-
-

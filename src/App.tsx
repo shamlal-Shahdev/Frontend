@@ -6,15 +6,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/guards/ProtectedRoute";
 import { AdminRoute } from "@/components/guards/AdminRoute";
 import { VendorRoute } from "@/components/guards/VendorRoute";
-
-// Auth pages
 import { Register } from "./pages/auth/Register";
 import { Login } from "./pages/auth/Login";
 import { ForgotPassword } from "./pages/auth/ForgotPassword";
 import { ResetPassword } from "./pages/auth/ResetPassword";
 import VerifyEmail from "./pages/auth/VerifyEmail";
-
-// User pages
+import { EmailVerificationSent } from "./pages/auth/EmailVerificationSent";
 import { KYC } from '@/pages/user/KYC';
 import { KYCInfo } from '@/pages/user/KYCInfo';
 import { KYCStatus } from "./pages/user/KYCStatus";
@@ -29,16 +26,12 @@ import { Certificates } from "./pages/user/Certificates";
 import { CarbonOffset } from "./pages/user/CarbonOffset";
 import { Marketplace } from "./pages/user/Marketplace";
 import { Predict } from "./pages/user/Predict";
-
-// Admin pages
 import { AdminLogin } from "./pages/admin/AdminLogin";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { KYCReview } from "./pages/admin/KYCReview";
 import { KYCDetail } from "./pages/admin/KYCDetail";
 import { InstallationRequests } from "./pages/admin/InstallationRequests";
 import { EnergyRequests } from "./pages/admin/EnergyRequests";
-
-// Vendor pages
 import { VendorRegister } from "./pages/vendor/VendorRegister";
 import { VendorLogin } from "./pages/vendor/VendorLogin";
 import { VendorForgotPassword } from "./pages/vendor/VendorForgotPassword";
@@ -46,16 +39,11 @@ import { VendorResetPassword } from "./pages/vendor/VendorResetPassword";
 import { VendorDashboard } from "./pages/vendor/VendorDashboard";
 import { VendorInstallations } from "./pages/vendor/VendorInstallations";
 import { VendorProfile } from "./pages/vendor/VendorProfile";
-
-// Other pages
+import { VendorEmailVerificationSent } from "./pages/vendor/VendorEmailVerificationSent";
 import NotFound from "./pages/NotFound";
-
 const queryClient = new QueryClient();
-
 const App = () => {
-  // Debug: Check if app is rendering
   console.log('App component rendering...');
-  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -63,14 +51,14 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public Auth Routes */}
+            {}
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/email-verification-sent" element={<EmailVerificationSent />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-
-          {/* Protected User Routes */}
+          {}
           <Route path="/kyc" element={
             <ProtectedRoute>
               <Navigate to="/kyc/info" replace />
@@ -146,8 +134,7 @@ const App = () => {
               <Predict />
             </ProtectedRoute>
           } />
-
-          {/* Admin Routes */}
+          {}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={
             <AdminRoute>
@@ -174,10 +161,10 @@ const App = () => {
               <EnergyRequests />
             </AdminRoute>
           } />
-
-          {/* Vendor Routes */}
+          {}
           <Route path="/vendor/register" element={<VendorRegister />} />
           <Route path="/vendor/login" element={<VendorLogin />} />
+          <Route path="/vendor/email-verification-sent" element={<VendorEmailVerificationSent />} />
           <Route path="/vendor/forgot-password" element={<VendorForgotPassword />} />
           <Route path="/vendor/reset-password" element={<VendorResetPassword />} />
           <Route path="/vendor/dashboard" element={
@@ -195,8 +182,7 @@ const App = () => {
               <VendorProfile />
             </VendorRoute>
           } />
-
-          {/* Default Routes */}
+          {}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<NotFound />} />
           </Routes>
@@ -205,5 +191,4 @@ const App = () => {
     </QueryClientProvider>
   );
 };
-
 export default App;

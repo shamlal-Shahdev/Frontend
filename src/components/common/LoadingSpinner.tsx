@@ -1,18 +1,8 @@
 import React from 'react';
-
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
-
-/**
- * LoadingSpinner: Reusable loading indicator
- * Features:
- * - Multiple sizes
- * - Customizable colors via CSS variables
- * - Accessible animation
- * - Configurable via props
- */
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'md',
   className = '',
@@ -22,7 +12,6 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     md: 'w-8 h-8',
     lg: 'w-12 h-12',
   };
-
   return (
     <div
       className={`inline-block animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] ${sizeClasses[size]} ${className}`}

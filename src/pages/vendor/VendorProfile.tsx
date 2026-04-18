@@ -19,7 +19,6 @@ import {
   Save,
   X
 } from 'lucide-react';
-
 interface VendorProfile {
   id: number;
   name: string;
@@ -31,7 +30,6 @@ interface VendorProfile {
   createdAt: string;
   updatedAt: string;
 }
-
 export const VendorProfile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -45,11 +43,9 @@ export const VendorProfile = () => {
     phone: '',
     companyName: ''
   });
-
   useEffect(() => {
     loadProfile();
   }, []);
-
   const loadProfile = async () => {
     try {
       const response = await api.get('/auth/me');
@@ -65,13 +61,11 @@ export const VendorProfile = () => {
       setLoading(false);
     }
   };
-
   const handleEdit = () => {
     setIsEditing(true);
     setError('');
     setSuccess('');
   };
-
   const handleCancel = () => {
     setIsEditing(false);
     setFormData({
@@ -81,10 +75,8 @@ export const VendorProfile = () => {
     });
     setError('');
   };
-
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Allow only +92 followed by 10 digits
     if (value.startsWith('+92')) {
       const digits = value.slice(3).replace(/\D/g, '').slice(0, 10);
       setFormData({ ...formData, phone: `+92${digits}` });
@@ -93,36 +85,27 @@ export const VendorProfile = () => {
       setFormData({ ...formData, phone: digits ? `+92${digits}` : '' });
     }
   };
-
   const handleUpdate = async () => {
     setError('');
     setSuccess('');
-    
-    // Validation
     if (!formData.name.trim()) {
       setError('Name is required');
       return;
     }
-
     if (formData.phone && !formData.phone.match(/^\+92\d{10}$/)) {
       setError('Phone must be in format +92 followed by 10 digits');
       return;
     }
-
     setUpdating(true);
-
     try {
       const response = await api.patch('/auth/me', {
         name: formData.name,
         phone: formData.phone || null,
         companyName: formData.companyName || null
       });
-      
       setProfile(response.data);
       setSuccess('Profile updated successfully!');
       setIsEditing(false);
-      
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update profile');
@@ -130,14 +113,12 @@ export const VendorProfile = () => {
       setUpdating(false);
     }
   };
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
     navigate('/vendor/login');
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -145,10 +126,9 @@ export const VendorProfile = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation */}
+      {}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -166,20 +146,17 @@ export const VendorProfile = () => {
           </div>
         </div>
       </nav>
-
-      {/* Main Content */}
+      {}
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Vendor Profile</h1>
           <p className="text-gray-500 mt-1">View your vendor account information</p>
         </div>
-
         {error && (
           <Card className="mb-6 border-red-200 bg-red-50">
             <CardContent className="p-4 text-red-700">{error}</CardContent>
           </Card>
         )}
-
         {success && (
           <Card className="mb-6 border-green-200 bg-green-50">
             <CardContent className="p-4 text-green-700 flex items-center gap-2">
@@ -188,7 +165,6 @@ export const VendorProfile = () => {
             </CardContent>
           </Card>
         )}
-
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -222,7 +198,6 @@ export const VendorProfile = () => {
                 <p className="text-sm text-gray-500">Vendor Account</p>
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-sm font-semibold text-gray-500 flex items-center gap-2 mb-2">
@@ -240,7 +215,6 @@ export const VendorProfile = () => {
                   <p className="text-lg font-medium text-gray-900">{profile?.companyName || 'N/A'}</p>
                 )}
               </div>
-
               <div>
                 <label className="text-sm font-semibold text-gray-500 flex items-center gap-2 mb-2">
                   <User className="w-4 h-4" />
@@ -258,7 +232,6 @@ export const VendorProfile = () => {
                   <p className="text-lg font-medium text-gray-900">{profile?.name || 'N/A'}</p>
                 )}
               </div>
-
               <div>
                 <label className="text-sm font-semibold text-gray-500 flex items-center gap-2 mb-2">
                   <Mail className="w-4 h-4" />
@@ -269,7 +242,6 @@ export const VendorProfile = () => {
                   <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                 )}
               </div>
-
               <div>
                 <label className="text-sm font-semibold text-gray-500 flex items-center gap-2 mb-2">
                   <Phone className="w-4 h-4" />
@@ -286,7 +258,6 @@ export const VendorProfile = () => {
                   <p className="text-lg font-medium text-gray-900">{profile?.phone || 'N/A'}</p>
                 )}
               </div>
-
               <div>
                 <label className="text-sm font-semibold text-gray-500 flex items-center gap-2 mb-2">
                   <Shield className="w-4 h-4" />
@@ -303,7 +274,6 @@ export const VendorProfile = () => {
                   )}
                 </div>
               </div>
-
               <div>
                 <label className="text-sm font-semibold text-gray-500 mb-2 block">Member Since</label>
                 <p className="text-lg font-medium text-gray-900">
@@ -321,4 +291,3 @@ export const VendorProfile = () => {
     </div>
   );
 };
-

@@ -4,18 +4,15 @@ import { kycApi } from '@/api/kyc.api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { CheckCircle, XCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
-
 export const KYCStatus = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<'pending' | 'approved' | 'rejected' | 'none' | 'in_review' | 'additional_docs_required' | 'not_submitted'>('none');
   const [rejectionReason, setRejectionReason] = useState('');
   const [documents, setDocuments] = useState<any[]>([]);
-
   useEffect(() => {
     loadStatus();
   }, []);
-
   const loadStatus = async () => {
     try {
       const response = await kycApi.getStatus();
@@ -23,7 +20,6 @@ export const KYCStatus = () => {
       setStatus(statusValue as any);
       setRejectionReason(response.rejectionReason || '');
       setDocuments(response.documents || []);
-
       if (response.status === 'approved') {
         navigate('/dashboard');
       }
@@ -33,7 +29,6 @@ export const KYCStatus = () => {
       setLoading(false);
     }
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -41,7 +36,6 @@ export const KYCStatus = () => {
       </div>
     );
   }
-
   if (status === 'none' || status === 'pending') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
@@ -71,7 +65,6 @@ export const KYCStatus = () => {
       </div>
     );
   }
-
   if (status === 'in_review') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
@@ -100,30 +93,12 @@ export const KYCStatus = () => {
                 </div>
               </div>
             </div>
-
-            {/* {documents.length > 0 && (
-              <div className="mt-6">
-                <h3 className="font-semibold text-gray-700 mb-3">Submitted Documents:</h3>
-                <div className="space-y-2">
-                  {documents.map((doc, idx) => (
-                    <div key={idx} className="bg-gray-50 p-3 rounded flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">
-                        {doc.docType?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || `Document ${idx + 1}`}
-                      </span>
-                      <span className="text-sm px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">
-                        {doc.status || 'Pending'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )} */}
+            {}
           </CardContent>
         </Card>
       </div>
     );
   }
-
   if (status === 'rejected' || status === 'additional_docs_required') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
@@ -156,7 +131,6 @@ export const KYCStatus = () => {
                       ? 'Your KYC documents have been reviewed and rejected by our admin team.'
                       : 'Your KYC submission requires additional documents to complete the verification process.'}
                   </p>
-                  
                   {rejectionReason && (
                     <div className="bg-white border border-red-200 p-4 rounded-lg mt-4">
                       <p className="text-xs font-semibold text-red-900 mb-2 uppercase tracking-wide">Rejection Reason / Admin Feedback:</p>
@@ -166,7 +140,6 @@ export const KYCStatus = () => {
                 </div>
               </div>
             </div>
-
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -175,25 +148,7 @@ export const KYCStatus = () => {
                 </p>
               </div>
             </div>
-
-            {/* {documents.length > 0 && (
-              <div className="mt-4">
-                <h3 className="font-semibold text-gray-700 mb-3">Previously Submitted Documents:</h3>
-                <div className="space-y-2">
-                  {documents.map((doc, idx) => (
-                    <div key={idx} className="bg-gray-50 p-3 rounded flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">
-                        {doc.docType?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || `Document ${idx + 1}`}
-                      </span>
-                      <span className="text-sm px-3 py-1 bg-red-100 text-red-700 rounded-full font-medium">
-                        {doc.status || 'Rejected'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )} */}
-
+            {}
             <Button 
               onClick={() => navigate('/kyc/info')} 
               className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-6 text-lg shadow-lg flex items-center justify-center gap-2"
@@ -206,10 +161,5 @@ export const KYCStatus = () => {
       </div>
     );
   }
-
   return null;
 };
-
-
-
-

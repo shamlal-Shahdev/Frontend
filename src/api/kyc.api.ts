@@ -1,5 +1,4 @@
 import { api } from './axios.config';
-
 interface KycStatusResponse {
   status: 'pending' | 'approved' | 'rejected' | 'none' | 'in_review' | 'additional_docs_required' | 'not_submitted';
   rejectionReason?: string | null;
@@ -10,7 +9,6 @@ interface KycStatusResponse {
     adminNotes?: string;
   }>;
 }
-
 export const kycApi = {
   submit: async (data: { 
     userId: number;
@@ -21,6 +19,7 @@ export const kycApi = {
     city: string;
     province: string;
     country: string;
+    utilityMeterReference?: string;
   }) => {
     const response = await api.post('/kyc/submit', {
       userId: data.userId,
@@ -31,14 +30,15 @@ export const kycApi = {
       city: data.city,
       province: data.province,
       country: data.country,
+      ...(data.utilityMeterReference
+        ? { utilityMeterReference: data.utilityMeterReference }
+        : {}),
     });
     return response.data;
   },
-
   uploadFile: async (file: File): Promise<{ url: string; }> => {
     const formData = new FormData();
     formData.append('file', file);
-
     const response = await api.post('/files/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -48,14 +48,8 @@ export const kycApi = {
     console.log('Upload file response', data);
     return {url: data.file.path,};
   },
-
   getStatus: async (): Promise<KycStatusResponse> => {
     const response = await api.get('/kyc/status');
     return response.data;
   },
 };
-
-
-
-
-

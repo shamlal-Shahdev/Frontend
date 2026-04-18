@@ -6,18 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Zap, ArrowLeft, CheckCircle } from 'lucide-react';
 const logoUrl = '/Assets/logo.png';
-
 export const VendorForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     try {
       await vendorApi.forgotPassword(email);
       setSuccess(true);
@@ -28,20 +25,17 @@ export const VendorForgotPassword = () => {
       setLoading(false);
     }
   };
-
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
         <div className="w-full max-w-md">
-          {/* Logo and Branding */}
+          {}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
             </div>
-            
           </div>
-
-          {/* Success Card */}
+          {}
           <Card className="shadow-xl border-0">
             <CardContent className="pt-8 pb-6 px-8">
               <div className="text-center mb-6">
@@ -55,12 +49,10 @@ export const VendorForgotPassword = () => {
                   A password reset link has been sent to <span className="font-semibold text-gray-800">{email}</span>
                 </p>
               </div>
-
               <div className="space-y-4">
                 <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm">
                   Click the link in the email to reset your password.
                 </div>
-                
                 <Link to="/vendor/login">
                   <Button className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30">
                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -74,33 +66,28 @@ export const VendorForgotPassword = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
       <div className="w-full max-w-md">
-        {/* Logo and Branding */}
+        {}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
           </div>
-          
         </div>
-
-        {/* Forgot Password Card */}
+        {}
         <Card className="shadow-xl border-0">
           <CardContent className="pt-8 pb-6 px-8">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-1">Forgot Password</h2>
               <p className="text-gray-500">Enter your email to receive a reset link</p>
             </div>
-
             <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
                 <Input
@@ -115,7 +102,6 @@ export const VendorForgotPassword = () => {
                   className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
-
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200" 
@@ -131,7 +117,6 @@ export const VendorForgotPassword = () => {
                   </span>
                 ) : 'Send Reset Link'}
               </Button>
-
               <Link to="/vendor/login" className="flex items-center justify-center text-sm font-medium text-gray-600 hover:text-gray-800 pt-2">
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back to Login
@@ -143,5 +128,3 @@ export const VendorForgotPassword = () => {
     </div>
   );
 };
-
-

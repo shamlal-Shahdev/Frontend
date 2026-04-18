@@ -4,13 +4,12 @@ import { authApi } from '@/api/auth.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Zap, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 const logoUrl = '/Assets/logo.png';
 export const Register = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -21,21 +20,16 @@ export const Register = () => {
     confirmPassword: '',
     phone: '',
   });
-
-  // Validation function for email format
   const validateEmail = (email: string): string | null => {
     if (!email.trim()) {
       return 'Email is required';
     }
-    // Comprehensive email regex pattern
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       return 'Please enter a valid email address (e.g., example@domain.com)';
     }
     return null;
   };
-
-  // Validation function for password strength
   const validatePassword = (password: string): string | null => {
     if (password.length < 6) {
       return 'Password must be at least 6 characters long';
@@ -54,164 +48,88 @@ export const Register = () => {
     }
     return null;
   };
-
-  // Handle first name input - only letters and spaces
   const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Only allow letters, spaces, hyphens, and apostrophes
     if (value === '' || /^[a-zA-Z\s'-]*$/.test(value)) {
       setFormData({ ...formData, firstName: value });
       if (error) setError('');
     }
   };
-
-  // Handle last name input - only letters and spaces
   const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Only allow letters, spaces, hyphens, and apostrophes
     if (value === '' || /^[a-zA-Z\s'-]*$/.test(value)) {
       setFormData({ ...formData, lastName: value });
       if (error) setError('');
     }
   };
-
-  // Handle phone input - only digits, max 10 characters (after +92 prefix)
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Remove any non-digit characters and limit to 10 digits (Pakistani mobile numbers)
     const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
     setFormData({ ...formData, phone: digitsOnly });
     if (error) setError('');
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    // Validate email format
     const emailError = validateEmail(formData.email);
     if (emailError) {
       setError(emailError);
       return;
     }
-    
-    // Validate password strength
     const passwordError = validatePassword(formData.password);
     if (passwordError) {
       setError(passwordError);
       return;
     }
-    
-    // Validate password match
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-
-    // Validate phone number length (should be 10 digits after +92)
     if (formData.phone.length < 10) {
       setError('Phone number must be exactly 10 digits');
       return;
     }
-
     setLoading(true);
-
     try {
-      // Exclude confirmPassword from the request and add +92 prefix to phone
       const { confirmPassword, ...registerData } = formData;
       registerData.phone = `+92${registerData.phone}`;
       await authApi.register(registerData);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+      navigate('/email-verification-sent', { state: { email: formData.email } });
     } catch (err: any) {
-      // Backend sends error in errors.email format for email already exists
       const errorMessage = err.response?.data?.errors?.email 
         || err.response?.data?.message 
         || 'Registration failed. Please try again.';
-      
-      // Transform email already exists message to be more user-friendly
       const finalMessage = errorMessage.toLowerCase().includes('already exists') || 
                           errorMessage.toLowerCase().includes('email already')
         ? 'This email is already registered. Please use a different email or try logging in.'
         : errorMessage;
-      
       setError(finalMessage);
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
-        <div className="w-full max-w-md">
-          {/* Logo and Branding */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center">
-              <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
-            </div>
-            <p className="text-xl font-medium text-emerald-600">
-              Power Up. Earn Up.
-            </p>
-          </div>
-
-          {/* Success Card */}
-          <Card className="shadow-xl border-0">
-            <CardContent className="pt-8 pb-6 px-8">
-              <div className="text-center mb-6">
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  </div>
-                </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Registration Successful!</h2>
-                <p className="text-gray-600">
-                  Please check your email <span className="font-semibold text-gray-800">{formData.email}</span> for verification.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm text-center">
-                  Redirecting to login page...
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8">
       <div className="w-full max-w-lg">
-        {/* Logo and Branding */}
         <div className="text-center mb-8">
         <div className="flex justify-center">
             <img src={logoUrl} alt="WattsUp Energy" className="w-32 h-32" />
           </div> 
-
           <p className="text-xl font-medium text-emerald-600">
             Power Up. Earn Up.
           </p>
         </div>
-
-        {/* Register Card */}
         <Card className="shadow-xl border-0">
           <CardContent className="pt-8 pb-6 px-8">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-1">Create Account</h2>
               <p className="text-gray-500">Enter your details to register</p>
             </div>
-
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
@@ -223,7 +141,6 @@ export const Register = () => {
                     className="h-12 bg-gray-50 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
                   <Input
@@ -235,7 +152,6 @@ export const Register = () => {
                   />
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
                 <Input
@@ -264,7 +180,6 @@ export const Register = () => {
                   </p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
                 <div className="flex">
@@ -282,7 +197,6 @@ export const Register = () => {
                   />
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
                 <div className="relative">
@@ -314,7 +228,6 @@ export const Register = () => {
                   Must contain: uppercase, lowercase, digit, and special character
                 </p>
               </div>
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
                 <div className="relative">
@@ -343,8 +256,6 @@ export const Register = () => {
                   </button>
                 </div>
               </div>
-
-
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-lg shadow-emerald-500/30 transition-all duration-200 mt-6" 
@@ -360,7 +271,6 @@ export const Register = () => {
                   </span>
                 ) : 'Register'}
               </Button>
-
               <p className="text-center text-sm text-gray-600 pt-2">
                 Already have an account?{' '}
                 <Link to="/login" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
@@ -374,8 +284,3 @@ export const Register = () => {
     </div>
   );
 };
-
-
-
-
-

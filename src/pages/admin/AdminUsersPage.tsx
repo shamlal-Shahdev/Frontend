@@ -14,7 +14,6 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { formatDate } from '@/utils/date-formatter';
 import { KycStatus } from '@/integration/kyc.api';
 import { Search, AlertCircle, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
-
 const kycStatusOptions: { value: KycStatus | ''; label: string }[] = [
   { value: '', label: 'All Statuses' },
   { value: 'pending', label: 'Pending' },
@@ -23,7 +22,6 @@ const kycStatusOptions: { value: KycStatus | ''; label: string }[] = [
   { value: 'rejected', label: 'Rejected' },
   { value: 'additional_docs_required', label: 'Additional Docs Required' },
 ];
-
 const kycStatusColors: Record<KycStatus, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   in_review: 'bg-blue-100 text-blue-800',
@@ -31,12 +29,10 @@ const kycStatusColors: Record<KycStatus, string> = {
   rejected: 'bg-red-100 text-red-800',
   additional_docs_required: 'bg-orange-100 text-orange-800',
 };
-
 export default function AdminUsersPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { users, loading, error, pagination, fetchUsers } = useAdmin();
-
   const [filters, setFilters] = useState({
     email: searchParams.get('email') || '',
     cnicNumber: searchParams.get('cnicNumber') || '',
@@ -44,7 +40,6 @@ export default function AdminUsersPage() {
     page: Number(searchParams.get('page')) || 1,
     limit: 10,
   });
-
   useEffect(() => {
     const params: Record<string, string> = {};
     if (filters.email) params.email = filters.email;
@@ -52,30 +47,35 @@ export default function AdminUsersPage() {
     if (filters.kycStatus) params.kycStatus = filters.kycStatus;
     if (filters.page > 1) params.page = filters.page.toString();
     setSearchParams(params);
-
-    fetchUsers(filters);
+    const fetchParams: any = {
+      email: filters.email || undefined,
+      cnicNumber: filters.cnicNumber || undefined,
+      kycStatus: filters.kycStatus || undefined,
+      page: filters.page,
+      limit: filters.limit,
+    };
+    Object.keys(fetchParams).forEach(key => {
+      if (fetchParams[key] === undefined || fetchParams[key] === '') {
+        delete fetchParams[key];
+      }
+    });
+    fetchUsers(fetchParams);
   }, [filters]);
-
   const handleFilterChange = (key: string, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
   };
-
   const handlePageChange = (newPage: number) => {
     setFilters(prev => ({ ...prev, page: newPage }));
     window.scrollTo(0, 0);
   };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
           <p className="text-gray-600 mt-2">View and manage all users and their KYC submissions</p>
         </div>
-
-        {/* Filters */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Filters</CardTitle>
@@ -97,7 +97,6 @@ export default function AdminUsersPage() {
                   />
                 </div>
               </div>
-
               <div>
                 <Label htmlFor="cnicNumber">CNIC Number</Label>
                 <Input
@@ -107,7 +106,6 @@ export default function AdminUsersPage() {
                   onChange={(e) => handleFilterChange('cnicNumber', e.target.value)}
                 />
               </div>
-
               <div>
                 <Label htmlFor="kycStatus">KYC Status</Label>
                 <Select
@@ -129,15 +127,12 @@ export default function AdminUsersPage() {
             </div>
           </CardContent>
         </Card>
-
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
-        {/* Users Table */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -215,8 +210,6 @@ export default function AdminUsersPage() {
                     </TableBody>
                   </Table>
                 </div>
-
-                {/* Pagination */}
                 {pagination && pagination.totalPages > 1 && (
                   <div className="flex items-center justify-between mt-6">
                     <div className="text-sm text-gray-600">
@@ -252,4 +245,3 @@ export default function AdminUsersPage() {
     </div>
   );
 }
-

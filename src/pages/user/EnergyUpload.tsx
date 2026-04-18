@@ -16,7 +16,6 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
 export const EnergyUpload = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -28,21 +27,16 @@ export const EnergyUpload = () => {
   const [meterId, setMeterId] = useState('');
   const [existingRequest, setExistingRequest] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Get current month and year
   const now = new Date();
-  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentMonth = now.getMonth() + 1; 
   const currentYear = now.getFullYear();
-
   useEffect(() => {
     checkExistingRequest();
   }, []);
-
   const checkExistingRequest = async () => {
     setCheckingStatus(true);
     try {
       const response = await energyApi.getStatus();
-      // Find request for current month/year
       const existing = response.requests.find(
         (req) => req.month === currentMonth && req.year === currentYear,
       );
@@ -53,12 +47,9 @@ export const EnergyUpload = () => {
       setCheckingStatus(false);
     }
   };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-
-      // Validate file type (jpg/png)
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(selectedFile.type)) {
         toast({
@@ -68,9 +59,7 @@ export const EnergyUpload = () => {
         });
         return;
       }
-
-      // Validate file size (max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 5 * 1024 * 1024; 
       if (selectedFile.size > maxSize) {
         toast({
           title: 'File Too Large',
@@ -79,11 +68,8 @@ export const EnergyUpload = () => {
         });
         return;
       }
-
       setFile(selectedFile);
       setError('');
-
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
@@ -91,7 +77,6 @@ export const EnergyUpload = () => {
       reader.readAsDataURL(selectedFile);
     }
   };
-
   const handleRemoveFile = () => {
     setFile(null);
     setPreview(null);
@@ -99,46 +84,35 @@ export const EnergyUpload = () => {
       fileInputRef.current.value = '';
     }
   };
-
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   };
-
   const getMonthName = (month: number) => {
     const date = new Date(2000, month - 1, 1);
     return date.toLocaleString('default', { month: 'long' });
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
     if (!file) {
       setError('Please select a meter image file');
       return;
     }
-
     setLoading(true);
-
     try {
       await energyApi.upload(file, currentMonth, currentYear, meterId || undefined);
-
       toast({
         title: 'Success!',
         description: 'Request submitted successfully. Waiting for admin approval.',
         className: 'bg-green-50 border-green-200',
       });
-
-      // Navigate to status page
       navigate('/energy/status');
     } catch (err: any) {
       console.error('Upload error:', err);
       const errorMessage =
         err.response?.data?.message || err.message || 'Failed to upload request';
-
-      // Handle specific error cases
       if (errorMessage.includes('already have a pending request')) {
         setError('You have already submitted your request. Please wait for admin response.');
         toast({
@@ -165,7 +139,6 @@ export const EnergyUpload = () => {
       setLoading(false);
     }
   };
-
   if (checkingStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -176,14 +149,11 @@ export const EnergyUpload = () => {
       </div>
     );
   }
-
-  // Check if user already has a request for this month
   const hasPendingRequest =
     existingRequest?.status === 'PENDING' || existingRequest?.status === 'APPROVED';
   const hasRewardGenerated = existingRequest?.status === 'REWARD_GENERATED';
   const hasRejectedRequest = existingRequest?.status === 'REJECTED';
   const hasRequest = hasPendingRequest || hasRewardGenerated || hasRejectedRequest;
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
@@ -200,8 +170,6 @@ export const EnergyUpload = () => {
         return <Badge>{status}</Badge>;
     }
   };
-
-  // If request already exists and is not rejected, show status message only
   if (hasRequest && !hasRejectedRequest) {
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-8">
@@ -214,7 +182,6 @@ export const EnergyUpload = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
-
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Energy Generation Verification</CardTitle>
@@ -234,7 +201,6 @@ export const EnergyUpload = () => {
                       <p className="text-yellow-800 mb-4">
                         You have already submitted your request for this month. Please wait for admin response.
                       </p>
-                      
                       {existingRequest && (
                         <div className="mt-4 pt-4 border-t border-yellow-300">
                           <div className="space-y-2">
@@ -256,7 +222,6 @@ export const EnergyUpload = () => {
                     </div>
                   </div>
                 </div>
-
                 <div className="flex gap-4">
                   <Button
                     variant="outline"
@@ -280,7 +245,6 @@ export const EnergyUpload = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="max-w-3xl mx-auto">
@@ -292,7 +256,6 @@ export const EnergyUpload = () => {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Dashboard
         </Button>
-
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Upload Smart Meter Image</CardTitle>
@@ -369,7 +332,6 @@ export const EnergyUpload = () => {
                   <p className="text-sm text-red-800">{error}</p>
                 </div>
               )}
-
               <div className="flex gap-4">
                 <Button
                   type="button"
@@ -404,4 +366,3 @@ export const EnergyUpload = () => {
     </div>
   );
 };
-

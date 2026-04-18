@@ -1,10 +1,18 @@
 import { api } from './axios.config';
-
+export type KycMeterCrosscheck =
+  | 'skipped'
+  | 'match'
+  | 'mismatch'
+  | 'no_kyc_reference';
 export interface EnergyRequest {
   id: number;
   userId: number;
   meterImageUrl: string;
   meterIdFromImage: string | null;
+  ocrRawText: string | null;
+  ocrAvgConfidence: number | null;
+  ocrMeterIdCandidate: string | null;
+  kycMeterCrosscheck: KycMeterCrosscheck | null;
   month: number;
   year: number;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'REWARD_GENERATED' | 'BLOCKCHAIN_FAILED';
@@ -15,18 +23,12 @@ export interface EnergyRequest {
   createdAt: string;
   updatedAt: string;
 }
-
 export interface EnergyRequestStatusResponse {
   requests: EnergyRequest[];
   total: number;
 }
-
 export interface UploadEnergyRequestResponse extends EnergyRequest {}
-
 export const energyApi = {
-  /**
-   * Upload smart meter image for energy generation verification
-   */
   upload: async (
     file: File,
     month: number,
@@ -40,7 +42,6 @@ export const energyApi = {
     if (meterIdFromImage) {
       formData.append('meterIdFromImage', meterIdFromImage);
     }
-
     const response = await api.post('/energy/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -48,22 +49,12 @@ export const energyApi = {
     });
     return response.data;
   },
-
-  /**
-   * Get user's energy request status
-   */
   getStatus: async (): Promise<EnergyRequestStatusResponse> => {
     const response = await api.get('/energy/status');
     return response.data;
   },
-
-  /**
-   * Get specific energy request by ID
-   */
   getById: async (id: number): Promise<EnergyRequest> => {
     const response = await api.get(`/energy/${id}`);
     return response.data;
   },
 };
-
-

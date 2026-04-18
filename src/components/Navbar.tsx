@@ -2,12 +2,9 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap, LayoutDashboard, Award, ShoppingBag, TrendingUp, FileCheck, Leaf, User, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 export const Navbar = () => {
   const location = useLocation();
-  
   const isActive = (path: string) => location.pathname === path;
-  
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard, disabled: false },
     { path: "/wallet", label: "Wallet", icon: Wallet, disabled: false },
@@ -18,7 +15,6 @@ export const Navbar = () => {
     { path: "/marketplace", label: "Marketplace", icon: ShoppingBag, disabled: true },
     { path: "/predict", label: "Predict & Win", icon: FileCheck, disabled: true },
   ];
-
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
@@ -28,7 +24,6 @@ export const Navbar = () => {
           </div>
           <span className="text-xl font-bold gradient-text">WattsUp Energy</span>
         </Link>
-        
         <div className="flex items-center space-x-1 flex-1">
           {navItems.map((item) => (
             item.disabled ? (
@@ -63,7 +58,6 @@ export const Navbar = () => {
             )
           ))}
         </div>
-        
         <Button variant="ghost" size="icon" asChild>
           <Link to="/profile">
             <User className="h-5 w-5" />

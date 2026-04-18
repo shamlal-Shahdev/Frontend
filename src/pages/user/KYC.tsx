@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { kycApi } from '@/api/kyc.api';
 import { authApi } from '@/api/auth.api';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -18,19 +20,18 @@ import {
   Loader2,
   CheckCircle2
 } from 'lucide-react';
-
 interface LocationData {
   city: string;
   province: string;
   country: string;
 }
-
 export const KYC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [utilityMeterReference, setUtilityMeterReference] = useState('');
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [files, setFiles] = useState<{
     cnicFront?: File;
@@ -44,30 +45,23 @@ export const KYC = () => {
     selfie?: string;
     utilityBill?: string;
   }>({});
-  
   const fileInputRefs = {
     cnicFront: useRef<HTMLInputElement>(null),
     cnicBack: useRef<HTMLInputElement>(null),
     selfie: useRef<HTMLInputElement>(null),
     utilityBill: useRef<HTMLInputElement>(null),
   };
-
   useEffect(() => {
-    // Get location data from navigation state
     const state = location.state as { location?: LocationData } | null;
     if (state?.location) {
       setLocationData(state.location);
     } else {
-      // If no location data, redirect back to info page
       navigate('/kyc/info');
     }
   }, [location, navigate]);
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         toast({
           title: 'Invalid File Type',
@@ -76,8 +70,6 @@ export const KYC = () => {
         });
         return;
       }
-
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: 'File Too Large',
@@ -86,10 +78,7 @@ export const KYC = () => {
         });
         return;
       }
-
       setFiles({ ...files, [field]: file });
-      
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviews({ ...previews, [field]: reader.result as string });
@@ -97,61 +86,46 @@ export const KYC = () => {
       reader.readAsDataURL(file);
     }
   };
-
   const handleRemoveFile = (field: string) => {
     const newFiles = { ...files };
     delete newFiles[field as keyof typeof newFiles];
     setFiles(newFiles);
-    
     const newPreviews = { ...previews };
     delete newPreviews[field as keyof typeof newPreviews];
     setPreviews(newPreviews);
-    
-    // Reset file input
     if (fileInputRefs[field as keyof typeof fileInputRefs]?.current) {
       fileInputRefs[field as keyof typeof fileInputRefs].current!.value = '';
     }
   };
-
   const handleChangeFile = (field: 'cnicFront' | 'cnicBack' | 'selfie' | 'utilityBill') => {
-    // Clear the input value first to ensure file picker opens
     if (fileInputRefs[field]?.current) {
       fileInputRefs[field].current!.value = '';
-      // Trigger click after a small delay to ensure the value is cleared
       setTimeout(() => {
         fileInputRefs[field].current?.click();
       }, 0);
     }
   };
-
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
     if (!files.cnicFront || !files.cnicBack || !files.selfie || !files.utilityBill) {
       setError('Please upload all required documents');
       return;
     }
-
     if (!locationData) {
       setError('Location information is missing. Please go back and fill the form again.');
       return;
     }
-
-    // Get user ID from localStorage or fetch from API
     let userId: number | null = null;
     const storedUserId = localStorage.getItem('userId');
-    
     if (storedUserId) {
       userId = parseInt(storedUserId, 10);
     } else {
-      // Fallback: fetch user ID from API
       try {
         const currentUser = await authApi.getCurrentUser();
         userId = currentUser.id;
@@ -162,17 +136,13 @@ export const KYC = () => {
         return;
       }
     }
-
     if (!userId) {
       setError('User ID not found. Please login again.');
       setLoading(false);
       return;
     }
-
     setLoading(true);
-
     try {
-      // Upload all files first to get URLs
       const [cnicFrontUpload, cnicBackUpload, selfieUpload, utilityBillUpload] = await Promise.all([
         kycApi.uploadFile(files.cnicFront!),
         kycApi.uploadFile(files.cnicBack!),
@@ -180,21 +150,14 @@ export const KYC = () => {
         kycApi.uploadFile(files.utilityBill!),
       ]);
       console.log('Upload file responses', cnicFrontUpload, cnicBackUpload, selfieUpload, utilityBillUpload);
-
-      // Get URLs from upload responses
       const cnicFrontUrl = cnicFrontUpload.url;
       const cnicBackUrl = cnicBackUpload.url;
       const selfieUrl = selfieUpload.url;
       const utilityBillUrl = utilityBillUpload.url;
-
       console.log('URLs', cnicFrontUrl, cnicBackUrl, selfieUrl, utilityBillUrl);
-
-      // Validate all URLs are present
       if (!cnicFrontUrl || !cnicBackUrl || !selfieUrl || !utilityBillUrl) {
         throw new Error('Failed to upload one or more files. Please try again.');
       }
-
-      // Submit all documents in a single request according to API documentation
       await kycApi.submit({
         userId: userId,
         CnicFrontUrl: cnicFrontUrl,
@@ -204,8 +167,10 @@ export const KYC = () => {
         city: locationData.city,
         province: locationData.province,
         country: locationData.country,
+        ...(utilityMeterReference.trim()
+          ? { utilityMeterReference: utilityMeterReference.trim() }
+          : {}),
       });
-
       toast({
         title: 'Success!',
         description: 'Your KYC documents have been submitted successfully.',
@@ -223,7 +188,6 @@ export const KYC = () => {
       setLoading(false);
     }
   };
-
   const handleBack = () => {
     navigate('/kyc/info', {
       state: {
@@ -231,11 +195,9 @@ export const KYC = () => {
       },
     });
   };
-
   if (!locationData) {
-    return null; // Will redirect in useEffect
+    return null; 
   }
-
   const renderFileUpload = (
     field: 'cnicFront' | 'cnicBack' | 'selfie' | 'utilityBill',
     label: string,
@@ -245,15 +207,13 @@ export const KYC = () => {
     const file = files[field];
     const preview = previews[field];
     const hasFile = !!file;
-
     return (
       <div className="space-y-2">
         <label className="block text-sm font-semibold text-gray-700">
           {label} <span className="text-red-500">*</span>
         </label>
         <p className="text-xs text-gray-500 mb-3">{description}</p>
-        
-        {/* Hidden file input - always present in DOM */}
+        {}
         <input
           ref={fileInputRefs[field]}
           type="file"
@@ -262,7 +222,6 @@ export const KYC = () => {
           className="hidden"
           required
         />
-        
         {!hasFile ? (
           <div
             onClick={() => fileInputRefs[field].current?.click()}
@@ -333,7 +292,6 @@ export const KYC = () => {
       </div>
     );
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8 sm:py-12">
       <div className="max-w-4xl mx-auto">
@@ -370,33 +328,29 @@ export const KYC = () => {
                   </div>
                 </div>
               )}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* CNIC Front */}
+                {}
                 {renderFileUpload(
                   'cnicFront',
                   'CNIC Front',
                   <CreditCard className="w-6 h-6 text-gray-600 group-hover:text-blue-600" />,
                   'Upload the front side of your CNIC'
                 )}
-
-                {/* CNIC Back */}
+                {}
                 {renderFileUpload(
                   'cnicBack',
                   'CNIC Back',
                   <CreditCard className="w-6 h-6 text-gray-600 group-hover:text-blue-600" />,
                   'Upload the back side of your CNIC'
                 )}
-
-                {/* Selfie */}
+                {}
                 {renderFileUpload(
                   'selfie',
                   'Selfie',
                   <User className="w-6 h-6 text-gray-600 group-hover:text-blue-600" />,
                   'Upload a clear selfie'
                 )}
-
-                {/* Utility Bill */}
+                {}
                 {renderFileUpload(
                   'utilityBill',
                   'Utility Bill',
@@ -404,7 +358,20 @@ export const KYC = () => {
                   'Upload a recent utility bill as proof of address'
                 )}
               </div>
-
+              <div className="space-y-2 max-w-xl">
+                <Label htmlFor="utilityMeterRef">Consumer / meter number (optional)</Label>
+                <Input
+                  id="utilityMeterRef"
+                  placeholder="As printed on your electricity bill"
+                  value={utilityMeterReference}
+                  onChange={(e) => setUtilityMeterReference(e.target.value)}
+                  disabled={loading}
+                  maxLength={255}
+                />
+                <p className="text-xs text-gray-500">
+                  Helps verify smart meter photos against your KYC bill. Leave blank if you do not see it on the bill.
+                </p>
+              </div>
               <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
                 <Button 
                   type="button" 
@@ -441,4 +408,3 @@ export const KYC = () => {
     </div>
   );
 };
-

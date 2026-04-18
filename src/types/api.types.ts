@@ -1,13 +1,7 @@
-/**
- * Centralized API Types for WattsUp Energy Platform
- */
-
-// Auth Types
 export interface LoginRequest {
   email: string;
   password: string;
 }
-
 export interface RegisterRequest {
   firstName: string;
   lastName: string;
@@ -15,7 +9,6 @@ export interface RegisterRequest {
   phone: string;
   password: string;
 }
-
 export interface RegisterWithKycRequest {
   firstName: string;
   lastName: string;
@@ -26,21 +19,18 @@ export interface RegisterWithKycRequest {
   province: string;
   country: string;
   gender: 'male' | 'female' | 'other';
-  dateOfBirth: string; // YYYY-MM-DD
-  cnicNumber: string; // 42101-1234567-1
+  dateOfBirth: string; 
+  cnicNumber: string; 
   cnicFront: File;
   cnicBack: File;
   selfie: File;
 }
-
 export interface LoginResponse {
   token: string;
   refreshToken: string;
   tokenExpires: number;
   user: User;
 }
-
-// User Types
 export interface User {
   id: string;
   email: string;
@@ -65,11 +55,8 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
-
-// KYC Types
 export type KycStatus = 'pending' | 'in_review' | 'approved' | 'rejected' | 'additional_docs_required';
 export type DocumentType = 'cnic_front' | 'cnic_back' | 'selfie' | 'additional';
-
 export interface Document {
   id: string;
   type: DocumentType;
@@ -78,7 +65,6 @@ export interface Document {
   createdAt: string;
   updatedAt: string;
 }
-
 export interface KycSubmission {
   id: string;
   user: User;
@@ -89,7 +75,6 @@ export interface KycSubmission {
   createdAt: string;
   updatedAt: string;
 }
-
 export interface KycStatusResponse {
   id: string;
   status: KycStatus;
@@ -98,13 +83,10 @@ export interface KycStatusResponse {
   createdAt: string;
   updatedAt: string;
 }
-
-// Admin Types
 export interface PaginatedUsersResponse {
   data: User[];
   hasNextPage: boolean;
 }
-
 export interface FilterUsersParams {
   email?: string;
   cnicNumber?: string;
@@ -112,7 +94,6 @@ export interface FilterUsersParams {
   page?: number;
   limit?: number;
 }
-
 export interface AuditLog {
   id: string;
   action: string;
@@ -126,24 +107,18 @@ export interface AuditLog {
     lastName: string;
   };
 }
-
-// File Upload Types
 export interface FileUploadResponse {
   file: {
     id: string;
     path: string;
   };
 }
-
-// API Response Types
 export interface ApiError {
   message: string;
   statusCode: number;
   errors?: Record<string, string[]>;
 }
-
 export interface SuccessResponse {
   message: string;
   success?: boolean;
 }
-

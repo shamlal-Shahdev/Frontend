@@ -21,12 +21,10 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-
 export const Certificates = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
   const navItems = [
     { path: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { path: '/wallet', label: 'Wallet', icon: Wallet },
@@ -37,19 +35,15 @@ export const Certificates = () => {
     { path: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
     { path: '/predict', label: 'Predict & Win', icon: FileCheck },
   ];
-
   const isActive = (path: string) => location.pathname === path;
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
     navigate('/login');
   };
-
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Left Sidebar */}
       <aside className={cn(
         "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
         sidebarOpen ? "w-64" : "w-20"
@@ -64,7 +58,6 @@ export const Certificates = () => {
             )}
           </div>
         </div>
-
         <nav className="flex-1 px-4 py-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -86,7 +79,6 @@ export const Certificates = () => {
             );
           })}
         </nav>
-
         <div className="p-4 border-t border-gray-200">
           <Button
             variant="ghost"
@@ -98,10 +90,7 @@ export const Certificates = () => {
           </Button>
         </div>
       </aside>
-
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex-1 max-w-md">
@@ -130,11 +119,8 @@ export const Certificates = () => {
             </div>
           </div>
         </header>
-
-        {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto">
-            {/* Coming Soon Banner */}
             <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-white">
               <CardContent className="pt-12 pb-12">
                 <div className="text-center space-y-6">

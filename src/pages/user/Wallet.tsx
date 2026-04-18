@@ -16,7 +16,6 @@ import {
   Loader2,
 } from 'lucide-react';
 const logoUrl = '/Assets/logo.png';
-
 export const Wallet = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -24,11 +23,9 @@ export const Wallet = () => {
   const [syncing, setSyncing] = useState(false);
   const [balance, setBalance] = useState<WalletBalance | null>(null);
   const [error, setError] = useState('');
-
   useEffect(() => {
     loadBalance();
   }, []);
-
   const loadBalance = async () => {
     setLoading(true);
     setError('');
@@ -47,7 +44,6 @@ export const Wallet = () => {
       setLoading(false);
     }
   };
-
   const handleSync = async () => {
     setSyncing(true);
     setError('');
@@ -71,13 +67,11 @@ export const Wallet = () => {
       setSyncing(false);
     }
   };
-
   const formatBalance = (balance: string | number): string => {
     const numBalance = typeof balance === 'string' ? parseFloat(balance) : balance;
     if (isNaN(numBalance)) return '0.00';
     return numBalance.toFixed(8);
   };
-
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
@@ -88,7 +82,6 @@ export const Wallet = () => {
       minute: '2-digit',
     });
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -99,10 +92,9 @@ export const Wallet = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation */}
+      {}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -119,15 +111,13 @@ export const Wallet = () => {
           </div>
         </div>
       </nav>
-
-      {/* Main Content */}
+      {}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Header */}
+        {}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">My Wallet</h1>
           <p className="text-gray-500 mt-1">View your rewards and token balance</p>
         </div>
-
         {error && !balance && (
           <Card className="mb-6 border-red-200 bg-red-50">
             <CardContent className="pt-6">
@@ -141,9 +131,8 @@ export const Wallet = () => {
             </CardContent>
           </Card>
         )}
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Balance Card */}
+          {}
           <Card className="lg:col-span-2 border-2 border-green-200 bg-gradient-to-br from-green-50 to-white">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -179,16 +168,15 @@ export const Wallet = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* Balance Display */}
+                {}
                 <div className="text-center py-8">
                   <p className="text-sm text-gray-600 mb-2">Total Balance</p>
                   <h2 className="text-5xl font-bold text-gray-900 mb-2">
                     {balance ? formatBalance(balance.balance) : '0.00'}
                   </h2>
-                  <p className="text-lg text-gray-600">WATT</p>
+                  <p className="text-lg text-gray-600"></p>
                 </div>
-
-                {/* Balance Info */}
+                {}
                 {balance && (
                   <div className="pt-6 border-t space-y-3">
                     <div className="flex items-center justify-between text-sm">
@@ -209,10 +197,9 @@ export const Wallet = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Info Cards */}
+          {}
           <div className="space-y-6">
-            {/* Rewards Info */}
+            {}
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -236,41 +223,7 @@ export const Wallet = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => navigate('/energy/upload')}
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Upload Energy Reading
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => navigate('/install-to-earn')}
-                >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Install to Earn
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => navigate('/dashboard')}
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  View Dashboard
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Status Badge */}
+            {}
             {balance && (
               <Card className="bg-green-50 border-green-200">
                 <CardContent className="pt-6">
@@ -290,41 +243,6 @@ export const Wallet = () => {
             )}
           </div>
         </div>
-
-        {/* Additional Info Section */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-lg">About Your Wallet</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-green-600" />
-                  How to Earn Rewards
-                </h3>
-                <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-                  <li>Upload energy meter readings</li>
-                  <li>Complete solar panel installations</li>
-                  <li>Participate in energy predictions</li>
-                  <li>Earn certificates for achievements</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                  <WalletIcon className="w-4 h-4 text-green-600" />
-                  Wallet Features
-                </h3>
-                <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-                  <li>Real-time balance synced from blockchain</li>
-                  <li>Secure and transparent transactions</li>
-                  <li>View your reward history</li>
-                  <li>Use tokens in the marketplace</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

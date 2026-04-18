@@ -2,13 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isVerifying, setIsVerifying] = useState(true);
-
   useEffect(() => {
     const verifyEmail = async () => {
       const token = searchParams.get('token');
@@ -21,28 +19,22 @@ const VerifyEmail = () => {
         navigate('/');
         return;
       }
-
       try {
         const { authApi } = await import('@/integration/api');
         const data = await authApi.verifyEmail(token);
-
         toast({
           title: 'Success',
           description: data.message,
         });
-
-        // Redirect based on user role after successful verification
         setTimeout(() => {
           navigate(data.redirectUrl || (data.role === 'vendor' ? '/vendor/login' : '/'));
         }, 2000);
-
       } catch (error: any) {
         toast({
           title: 'Error',
           description: error.message || 'Email verification failed',
           variant: 'destructive',
         });
-        // Redirect to login page after error
         setTimeout(() => {
           navigate('/');
         }, 2000);
@@ -50,10 +42,8 @@ const VerifyEmail = () => {
         setIsVerifying(false);
       }
     };
-
     verifyEmail();
   }, [searchParams, navigate, toast]);
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
       {isVerifying ? (
