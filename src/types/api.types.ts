@@ -55,7 +55,13 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
-export type KycStatus = 'pending' | 'in_review' | 'approved' | 'rejected' | 'additional_docs_required';
+export type KycStatus =
+  | 'not_submitted'
+  | 'pending'
+  | 'in_review'
+  | 'approved'
+  | 'rejected'
+  | 'additional_docs_required';
 export type DocumentType = 'cnic_front' | 'cnic_back' | 'selfie' | 'additional';
 export interface Document {
   id: string;
@@ -121,4 +127,42 @@ export interface ApiError {
 export interface SuccessResponse {
   message: string;
   success?: boolean;
+}
+
+export interface EnergyTrendData {
+  month: string;
+  energy: number;
+}
+
+export interface CarbonReductionTrendData {
+  month: string;
+  carbonReducedKg: number;
+}
+
+export interface RewardDistributionData {
+  category: string;
+  amount: number;
+  percentage: number;
+}
+
+export interface DashboardActivity {
+  type: string;
+  description: string;
+  date: Date | string;
+  amount?: number;
+}
+
+export interface DashboardData {
+  totalEnergyGenerated: number;
+  totalTokensEarned: number;
+  tokensRedeemed: number;
+  tokensAvailable: number;
+  activePredictions: number;
+  certificatesEarned: number;
+  monthlyCarbonReducedKg: number;
+  totalCarbonReducedKg: number;
+  energyGenerationTrend: EnergyTrendData[];
+  carbonReductionTrend: CarbonReductionTrendData[];
+  rewardsDistribution: RewardDistributionData[];
+  recentActivity: DashboardActivity[];
 }

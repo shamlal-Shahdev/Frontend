@@ -17,6 +17,10 @@ interface User {
   phone: string;
   isVerified: boolean;
   kycStatus?: string | null;
+  walletAddress?: string | null;
+  /** Vendor profile (same `/auth/me` payload when role is vendor). */
+  companyName?: string | null;
+  companyProfileComplete?: boolean;
   role: string;
   createdAt: string;
   updatedAt: string;

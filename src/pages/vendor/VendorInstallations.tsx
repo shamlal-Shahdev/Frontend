@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { vendorApi } from '@/api/vendor.api';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -33,6 +35,7 @@ interface InstallationEntity {
   installationType: string;
   capacityKw: number;
   location: string;
+  meterId?: string | null;
   latitude?: number | null;
   longitude?: number | null;
   status: 'submitted' | 'assigned' | 'in_progress' | 'completed' | 'rejected';
@@ -63,6 +66,7 @@ export const VendorInstallations = () => {
     id: number;
     status: 'in_progress' | 'completed' | 'rejected';
   } | null>(null);
+  const [completeMeterId, setCompleteMeterId] = useState('');
   useEffect(() => {
     loadInstallations();
   }, [page]);
@@ -80,17 +84,40 @@ export const VendorInstallations = () => {
       setLoading(false);
     }
   };
-  const handleStatusUpdateClick = (id: number, status: 'in_progress' | 'completed' | 'rejected') => {
+  const handleStatusUpdateClick = (
+    id: number,
+    status: 'in_progress' | 'completed' | 'rejected',
+    initialMeterId?: string | null,
+  ) => {
     setPendingAction({ id, status });
+    setCompleteMeterId(
+      status === 'completed' ? (initialMeterId?.trim() ?? '') : '',
+    );
     setConfirmDialogOpen(true);
   };
   const handleStatusUpdateConfirm = async () => {
     if (!pendingAction) return;
     const { id, status } = pendingAction;
+    if (status === 'completed') {
+      const mid = completeMeterId.trim();
+      if (!mid) {
+        toast({
+          title: 'Meter ID required',
+          description: 'Enter the utility meter ID before completing the installation.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
     setConfirmDialogOpen(false);
     setUpdating(id);
     try {
-      await vendorApi.updateInstallationStatus(id, { status });
+      await vendorApi.updateInstallationStatus(
+        id,
+        status === 'completed'
+          ? { status, meterId: completeMeterId.trim() }
+          : { status },
+      );
       const statusText = status === 'rejected' 
         ? 'rejected' 
         : status === 'completed' 
@@ -119,6 +146,7 @@ export const VendorInstallations = () => {
     } finally {
       setUpdating(null);
       setPendingAction(null);
+      setCompleteMeterId('');
     }
   };
   const handleViewDetails = async (installation: InstallationEntity) => {
@@ -200,10 +228,6 @@ export const VendorInstallations = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">My Installations</h1>
-          <Button variant="outline" onClick={() => navigate('/vendor/dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
         </div>
         {error && (
           <Card className="mb-6 border-red-200 bg-red-50">
@@ -254,74 +278,20 @@ export const VendorInstallations = () => {
                             {formatDate(installation.registeredAt)}
                           </td>
                           <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleViewDetails(installation)}
-                              >
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                              {installation.status === 'assigned' && (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="text-orange-600 hover:text-orange-700"
-                                  onClick={() => handleStatusUpdateClick(installation.id, 'in_progress')}
-                                  disabled={updating === installation.id}
+                                  onClick={() => handleViewDetails(installation)}
                                 >
-                                  {updating === installation.id ? (
-                                    <Clock className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <>
-                                      <Activity className="w-4 h-4" />
-                                      <span className="ml-1">Start</span>
-                                    </>
-                                  )}
+                                  <Eye className="w-4 h-4" />
                                 </Button>
-                              )}
-                              {installation.status === 'in_progress' && (
-                                <>
+                                {installation.status === 'assigned' && (
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-green-600 hover:text-green-700"
-                                    onClick={() => handleStatusUpdateClick(installation.id, 'completed')}
-                                    disabled={updating === installation.id}
-                                  >
-                                    {updating === installation.id ? (
-                                      <Clock className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <>
-                                        <CheckCircle className="w-4 h-4" />
-                                        <span className="ml-1">Complete</span>
-                                      </>
-                                    )}
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-red-600 hover:text-red-700"
-                                    onClick={() => handleStatusUpdateClick(installation.id, 'rejected')}
-                                    disabled={updating === installation.id}
-                                  >
-                                    {updating === installation.id ? (
-                                      <Clock className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <>
-                                        <XCircle className="w-4 h-4" />
-                                        <span className="ml-1">Reject</span>
-                                      </>
-                                    )}
-                                  </Button>
-                                </>
-                              )}
-                              {installation.status === 'submitted' && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-green-600 hover:text-green-700"
+                                    className="text-orange-600 hover:text-orange-700"
                                     onClick={() => handleStatusUpdateClick(installation.id, 'in_progress')}
                                     disabled={updating === installation.id}
                                   >
@@ -329,11 +299,90 @@ export const VendorInstallations = () => {
                                       <Clock className="w-4 h-4 animate-spin" />
                                     ) : (
                                       <>
-                                        <CheckCircle className="w-4 h-4" />
-                                        <span className="ml-1">Accept</span>
+                                        <Activity className="w-4 h-4" />
+                                        <span className="ml-1">Start</span>
                                       </>
                                     )}
                                   </Button>
+                                )}
+                                {installation.status === 'in_progress' && (
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-green-600 hover:text-green-700"
+                                      onClick={() =>
+                                        handleStatusUpdateClick(
+                                          installation.id,
+                                          'completed',
+                                          installation.meterId,
+                                        )}
+                                      disabled={updating === installation.id}
+                                    >
+                                      {updating === installation.id ? (
+                                        <Clock className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <>
+                                          <CheckCircle className="w-4 h-4" />
+                                          <span className="ml-1">Complete</span>
+                                        </>
+                                      )}
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-red-600 hover:text-red-700"
+                                      onClick={() => handleStatusUpdateClick(installation.id, 'rejected')}
+                                      disabled={updating === installation.id}
+                                    >
+                                      {updating === installation.id ? (
+                                        <Clock className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <>
+                                          <XCircle className="w-4 h-4" />
+                                          <span className="ml-1">Reject</span>
+                                        </>
+                                      )}
+                                    </Button>
+                                  </>
+                                )}
+                                {installation.status === 'submitted' && (
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-green-600 hover:text-green-700"
+                                      onClick={() => handleStatusUpdateClick(installation.id, 'in_progress')}
+                                      disabled={updating === installation.id}
+                                    >
+                                      {updating === installation.id ? (
+                                        <Clock className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <>
+                                          <CheckCircle className="w-4 h-4" />
+                                          <span className="ml-1">Accept</span>
+                                        </>
+                                      )}
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-red-600 hover:text-red-700"
+                                      onClick={() => handleStatusUpdateClick(installation.id, 'rejected')}
+                                      disabled={updating === installation.id}
+                                    >
+                                      {updating === installation.id ? (
+                                        <Clock className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <>
+                                          <XCircle className="w-4 h-4" />
+                                          <span className="ml-1">Reject</span>
+                                        </>
+                                      )}
+                                    </Button>
+                                  </>
+                                )}
+                                {installation.status === 'assigned' && (
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -350,26 +399,13 @@ export const VendorInstallations = () => {
                                       </>
                                     )}
                                   </Button>
-                                </>
-                              )}
-                              {installation.status === 'assigned' && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-red-600 hover:text-red-700"
-                                  onClick={() => handleStatusUpdateClick(installation.id, 'rejected')}
-                                  disabled={updating === installation.id}
-                                >
-                                  {updating === installation.id ? (
-                                    <Clock className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <>
-                                      <XCircle className="w-4 h-4" />
-                                      <span className="ml-1">Reject</span>
-                                    </>
-                                  )}
-                                </Button>
-                              )}
+                                )}
+                              </div>
+                              {installation.meterId?.trim() ? (
+                                <div className="text-xs text-gray-600">
+                                  Meter ID: <span className="font-medium text-gray-900">{installation.meterId}</span>
+                                </div>
+                              ) : null}
                             </div>
                           </td>
                         </tr>
@@ -512,7 +548,12 @@ export const VendorInstallations = () => {
                 <div className="flex gap-2 pt-4 border-t">
                   <Button
                     className="flex-1 bg-green-500 hover:bg-green-600"
-                    onClick={() => handleStatusUpdateClick(selectedInstallation.id, 'completed')}
+                    onClick={() =>
+                      handleStatusUpdateClick(
+                        selectedInstallation.id,
+                        'completed',
+                        selectedInstallation.meterId,
+                      )}
                     disabled={updating === selectedInstallation.id}
                   >
                     {updating === selectedInstallation.id ? (
@@ -651,11 +692,21 @@ export const VendorInstallations = () => {
                   <span className="text-red-600 font-medium">This action cannot be undone.</span>
                 </>
               ) : pendingAction?.status === 'completed' ? (
-                <>
-                  Are you sure you want to mark this installation as <strong>completed</strong>?
-                  <br />
-                  This will finalize the installation process.
-                </>
+                <div className="space-y-3">
+                  <p>
+                    Enter the <strong>utility meter ID</strong> for this site, then confirm completion.
+                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="vendor-complete-meter-id">Meter ID</Label>
+                    <Input
+                      id="vendor-complete-meter-id"
+                      value={completeMeterId}
+                      onChange={(e) => setCompleteMeterId(e.target.value)}
+                      placeholder="e.g. MTR-8829103"
+                      autoComplete="off"
+                    />
+                  </div>
+                </div>
               ) : (
                 <>
                   Are you sure you want to <strong>start</strong> this installation?

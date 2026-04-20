@@ -16,6 +16,7 @@ import { KycStatus } from '@/integration/kyc.api';
 import { Search, AlertCircle, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 const kycStatusOptions: { value: KycStatus | ''; label: string }[] = [
   { value: '', label: 'All Statuses' },
+  { value: 'not_submitted', label: 'Not Submitted' },
   { value: 'pending', label: 'Pending' },
   { value: 'in_review', label: 'In Review' },
   { value: 'approved', label: 'Approved' },
@@ -23,6 +24,7 @@ const kycStatusOptions: { value: KycStatus | ''; label: string }[] = [
   { value: 'additional_docs_required', label: 'Additional Docs Required' },
 ];
 const kycStatusColors: Record<KycStatus, string> = {
+  not_submitted: 'bg-gray-100 text-gray-800',
   pending: 'bg-yellow-100 text-yellow-800',
   in_review: 'bg-blue-100 text-blue-800',
   approved: 'bg-green-100 text-green-800',
@@ -183,7 +185,7 @@ export default function AdminUsersPage() {
                           <TableCell>
                             {user.kycStatus ? (
                               <Badge className={kycStatusColors[user.kycStatus]}>
-                                {user.kycStatus.replace('_', ' ').toUpperCase()}
+                                {user.kycStatus.replace(/_/g, ' ').toUpperCase()}
                               </Badge>
                             ) : (
                               <span className="text-gray-400">No KYC</span>

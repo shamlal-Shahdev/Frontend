@@ -10,6 +10,10 @@ export const walletBalanceApi = {
     const response = await api.get('/wallet-balances/my-balance');
     return response.data;
   },
+  syncMyBalance: async (): Promise<WalletBalance> => {
+    const response = await api.get('/wallet-balances/my-balance/sync');
+    return response.data;
+  },
   getByUserId: async (userId: number): Promise<WalletBalance> => {
     const response = await api.get(`/wallet-balances/user/${userId}`);
     return response.data;

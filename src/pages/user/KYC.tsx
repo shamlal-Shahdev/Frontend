@@ -3,8 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { kycApi } from '@/api/kyc.api';
 import { authApi } from '@/api/auth.api';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -31,7 +29,6 @@ export const KYC = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [utilityMeterReference, setUtilityMeterReference] = useState('');
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [files, setFiles] = useState<{
     cnicFront?: File;
@@ -167,9 +164,6 @@ export const KYC = () => {
         city: locationData.city,
         province: locationData.province,
         country: locationData.country,
-        ...(utilityMeterReference.trim()
-          ? { utilityMeterReference: utilityMeterReference.trim() }
-          : {}),
       });
       toast({
         title: 'Success!',
@@ -357,20 +351,6 @@ export const KYC = () => {
                   <Receipt className="w-6 h-6 text-gray-600 group-hover:text-blue-600" />,
                   'Upload a recent utility bill as proof of address'
                 )}
-              </div>
-              <div className="space-y-2 max-w-xl">
-                <Label htmlFor="utilityMeterRef">Consumer / meter number (optional)</Label>
-                <Input
-                  id="utilityMeterRef"
-                  placeholder="As printed on your electricity bill"
-                  value={utilityMeterReference}
-                  onChange={(e) => setUtilityMeterReference(e.target.value)}
-                  disabled={loading}
-                  maxLength={255}
-                />
-                <p className="text-xs text-gray-500">
-                  Helps verify smart meter photos against your KYC bill. Leave blank if you do not see it on the bill.
-                </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
                 <Button 

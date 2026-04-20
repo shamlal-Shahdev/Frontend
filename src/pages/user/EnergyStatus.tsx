@@ -14,7 +14,6 @@ import {
   AlertCircle,
   RefreshCw,
   ExternalLink,
-  Upload,
 } from 'lucide-react';
 const getStatusBadge = (status: EnergyRequest['status']) => {
   switch (status) {
@@ -111,26 +110,16 @@ export const EnergyStatus = () => {
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-8">
         <div className="max-w-3xl mx-auto">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/dashboard')}
-            className="mb-6"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Energy Generation Requests</CardTitle>
+              <CardTitle className="text-2xl">Energy generation</CardTitle>
               <CardDescription>
-                You haven't submitted any energy generation requests yet.
+                Meter readings are recorded automatically from your installation. You do not need
+                to upload meter photos. Any historical verification requests will appear here when
+                present.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => navigate('/energy/upload')} className="w-full">
-                <Upload className="w-4 h-4 mr-2" />
-                Submit Your First Request
-              </Button>
             </CardContent>
           </Card>
         </div>
@@ -141,13 +130,6 @@ export const EnergyStatus = () => {
     <div className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/dashboard')}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
           <Button variant="outline" onClick={loadStatus}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
@@ -225,13 +207,10 @@ export const EnergyStatus = () => {
                         </div>
                       </div>
                     </div>
-                    <Button
-                      onClick={() => navigate('/energy/upload')}
-                      className="w-full"
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Image Again
-                    </Button>
+                    <p className="text-sm text-red-800">
+                      Manual meter uploads are no longer used. New readings are applied automatically;
+                      if you believe this rejection is incorrect, contact support.
+                    </p>
                   </div>
                 )}
                 {request.status === 'REWARD_GENERATED' && (
@@ -314,28 +293,6 @@ export const EnergyStatus = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
-        <div className="mt-6">
-          <Button
-            onClick={() => navigate('/energy/upload')}
-            className="w-full"
-            disabled={(() => {
-              const now = new Date();
-              const currentMonth = now.getMonth() + 1;
-              const currentYear = now.getFullYear();
-              const existing = requests.find(
-                (r) => r.month === currentMonth && r.year === currentYear,
-              );
-              return (
-                existing?.status === 'PENDING' ||
-                existing?.status === 'APPROVED' ||
-                existing?.status === 'REWARD_GENERATED'
-              );
-            })()}
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Submit New Request
-          </Button>
         </div>
       </div>
     </div>

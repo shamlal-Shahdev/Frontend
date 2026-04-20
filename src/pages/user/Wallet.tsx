@@ -1,23 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { walletBalanceApi, WalletBalance } from '@/api/wallet-balance.api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Wallet as WalletIcon, 
   RefreshCw, 
-  TrendingUp, 
   Award,
   Clock,
-  Zap,
-  ArrowLeft,
   Loader2,
 } from 'lucide-react';
 const logoUrl = '/Assets/logo.png';
 export const Wallet = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -48,7 +42,7 @@ export const Wallet = () => {
     setSyncing(true);
     setError('');
     try {
-      const data = await walletBalanceApi.getMyBalance();
+      const data = await walletBalanceApi.syncMyBalance();
       setBalance(data);
       toast({
         title: 'Success',
@@ -102,12 +96,6 @@ export const Wallet = () => {
             <img src={logoUrl} alt="WattsUp Energy" className="w-16 h-16" />
         </div>
             <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
           </div>
         </div>
       </nav>
@@ -188,10 +176,7 @@ export const Wallet = () => {
                         {formatDate(balance.updatedAt)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Wallet ID</span>
-                      <span className="font-medium text-gray-900">#{balance.id}</span>
-                    </div>
+                    
                   </div>
                 )}
               </div>
@@ -199,30 +184,6 @@ export const Wallet = () => {
           </Card>
           {}
           <div className="space-y-6">
-            {}
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-yellow-500" />
-                  <CardTitle className="text-lg">Rewards</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-gray-600">Earned Tokens</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                      {balance ? formatBalance(balance.balance) : '0.00'}
-                    </p>
-                  </div>
-                  <div className="pt-3 border-t">
-                    <p className="text-xs text-gray-500">
-                      Tokens are earned through energy generation, installations, and other activities.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
             {}
             {balance && (
               <Card className="bg-green-50 border-green-200">

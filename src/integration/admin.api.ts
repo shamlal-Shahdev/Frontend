@@ -58,11 +58,17 @@ export interface UserDetail {
     approvedAt?: string;
     documents: Document[];
   };
-  auditLogs?: AuditLog[];
+  auditLogs?: AuditLogRow[];
 }
-export interface AuditLog {
+/** Matches backend `AuditLogEntity` JSON shape. */
+export interface AuditLogRow {
+  id: number;
+  actorUserId: number | null;
   action: string;
-  description: string;
+  entityType: string;
+  entityId: string;
+  metadata: Record<string, unknown> | null;
+  ip: string | null;
   createdAt: string;
 }
 export interface ApproveKycRequest {
@@ -76,12 +82,7 @@ export interface RequestDocumentsRequest {
   message: string;
 }
 export interface AuditLogsResponse {
-  logs: {
-    id: string;
-    action: string;
-    description: string;
-    createdAt: string;
-  }[];
+  logs: AuditLogRow[];
   pagination: {
     total: number;
     page: number;

@@ -17,15 +17,11 @@ export const Login = () => {
   });
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🔵 Form submitted!', formData);
     setError('');
     setLoading(true);
     try {
-      console.log('🔵 Calling login API...');
       const response = await authApi.login(formData);
-      console.log('✅ Login response:', response);
       if (response.user.role === 'admin' || response.user.role === 'ADMIN') {
-        console.log('❌ Admin user attempted to login through user endpoint');
         setError('Admin users must use the admin login page. Redirecting...');
         setLoading(false);
         setTimeout(() => {
@@ -37,25 +33,22 @@ export const Login = () => {
       localStorage.setItem('userId', response.user.id.toString());
       localStorage.setItem('userRole', response.user.role);
       if (!response.user.isVerified) {
-        console.log('❌ Email not verified');
         setError('Email not verified. Please check your email.');
         setLoading(false);
         return;
       }
       const kycStatus = response.user.kycStatus?.toLowerCase();
       if (kycStatus === 'approved') {
-        console.log('➡️ Redirecting to dashboard');
         navigate('/dashboard');
+      } else if (kycStatus === 'additional_docs_required') {
+        navigate('/kyc/documents');
       } else if (!kycStatus || kycStatus === '' || kycStatus === 'pending' || kycStatus === 'not_submitted') {
-        console.log('➡️ Redirecting to KYC submission page');
         navigate('/kyc/info');
       } else {
-        console.log('➡️ Redirecting to KYC status page');
         navigate('/kyc-status');
       }
     } catch (err: any) {
-      console.error('❌ Login error:', err);
-      console.error('❌ Error response:', err.response);
+      console.error('Login error:', err);
       let message = 'Invalid password or credentials. Please try again.';
       if (err.response?.data?.message) {
         const errorMsg = err.response.data.message;
@@ -85,7 +78,6 @@ export const Login = () => {
       if (message.includes('status code') || message.includes('Request failed') || message.includes('422')) {
         message = 'Invalid password or credentials. Please check your email and password.';
       }
-      console.log('❌ Setting error message:', message);
       setError(message);
     } finally {
       setLoading(false);

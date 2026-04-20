@@ -187,14 +187,6 @@ export const KYCReview = () => {
               </div>
               <h1 className="text-3xl font-bold text-gray-900">KYC Review</h1>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/admin/dashboard')}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Dashboard
-            </Button>
           </div>
           <p className="text-gray-600 ml-12">Review and manage user KYC verifications</p>
         </div>

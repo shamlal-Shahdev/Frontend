@@ -1,5 +1,11 @@
 import { client } from './client';
-export type KycStatus = 'pending' | 'in_review' | 'approved' | 'rejected' | 'additional_docs_required';
+export type KycStatus =
+  | 'not_submitted'
+  | 'pending'
+  | 'in_review'
+  | 'approved'
+  | 'rejected'
+  | 'additional_docs_required';
 export type DocumentType = 'cnic_front' | 'cnic_back' | 'selfie' | 'additional';
 export type DocumentStatus = 'pending' | 'verified' | 'rejected';
 export type Gender = 'male' | 'female' | 'other';

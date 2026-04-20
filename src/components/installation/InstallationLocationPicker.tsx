@@ -98,6 +98,7 @@ export function InstallationLocationPicker({
             description:
               'Coordinates saved; you can edit the text below if needed.',
             variant: 'destructive',
+            duration: 5000,
           });
         }
       }, 650);
@@ -114,6 +115,7 @@ export function InstallationLocationPicker({
         title: 'No results',
         description: 'Try a different place name or move the pin on the map.',
         variant: 'destructive',
+        duration: 5000,
       });
       return;
     }

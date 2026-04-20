@@ -314,11 +314,16 @@ export default function AdminUserDetailsPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {userDetail.auditLogs.map((log, idx) => (
-                          <div key={idx} className="flex items-start gap-3 pb-3 border-b last:border-0">
+                        {userDetail.auditLogs.map((log) => (
+                          <div key={log.id} className="flex items-start gap-3 pb-3 border-b last:border-0">
                             <div className="flex-1">
                               <p className="font-medium text-sm">{log.action}</p>
-                              <p className="text-xs text-gray-600">{log.description}</p>
+                              <p className="text-xs text-gray-600">
+                                {log.entityType} · {log.entityId}
+                                {log.metadata && Object.keys(log.metadata).length > 0
+                                  ? ` · ${JSON.stringify(log.metadata)}`
+                                  : ''}
+                              </p>
                               <p className="text-xs text-gray-400 mt-1">{formatDateTime(log.createdAt)}</p>
                             </div>
                           </div>

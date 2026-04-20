@@ -22,16 +22,33 @@ interface KycEntity {
   adminNotes: string | null;
   submittedAt: string;
   reviewedAt: string | null;
+  status?: string;
+  rejectionReason?: string | null;
   user?: {
     id: number;
     name: string;
     email: string;
     phone: string;
     isVerified: boolean;
-    kycStatus: string;
+    kycStatus?: string;
     createdAt: string;
     updatedAt: string;
   };
+}
+
+function pickLatestKyc(documents: KycEntity[]): KycEntity {
+  return [...documents].sort(
+    (a, b) =>
+      new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
+  )[0];
+}
+
+function effectiveKycStatus(kyc: KycEntity): string {
+  return (
+    kyc.status ||
+    kyc.user?.kycStatus ||
+    'not_submitted'
+  );
 }
 interface UserDocumentsResponse {
   documents: KycEntity[];
@@ -64,9 +81,8 @@ export const KYCDetail = () => {
     setError('');
     try {
       const documentsResponse = await adminApi.getUserDocuments(parseInt(userId));
-      console.log('Documents Response:', documentsResponse);
       if (documentsResponse.documents && documentsResponse.documents.length > 0) {
-        const kyc = documentsResponse.documents[0];
+        const kyc = pickLatestKyc(documentsResponse.documents);
         setKycData(kyc);
         if (kyc.user) {
           setUserDetails({
@@ -75,7 +91,7 @@ export const KYCDetail = () => {
             email: kyc.user.email,
             phone: kyc.user.phone || '',
             isVerified: kyc.user.isVerified,
-            kycStatus: kyc.user.kycStatus,
+            kycStatus: effectiveKycStatus(kyc),
             createdAt: kyc.user.createdAt,
             updatedAt: kyc.user.updatedAt,
           });

@@ -24,7 +24,7 @@ export type {
   UserDetail,
   PaginatedUsersResponse, 
   FilterUsersParams, 
-  AuditLog,
+  AuditLogRow,
   AuditLogsResponse,
   ApproveKycRequest, 
   RejectKycRequest, 

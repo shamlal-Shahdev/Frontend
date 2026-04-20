@@ -351,10 +351,6 @@ export default function InstallToEarn() {
               <img src={logoUrl} alt="WattsUp Energy" className="h-14 w-14 rounded-md object-contain" />
               <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
             </div>
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
           </div>
         </nav>
         <div className="container mx-auto py-8 px-4">
@@ -380,10 +376,6 @@ export default function InstallToEarn() {
               <img src={logoUrl} alt="WattsUp Energy" className="h-14 w-14 rounded-md object-contain" />
               <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
             </div>
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
           </div>
         </nav>
         {}
@@ -476,10 +468,6 @@ export default function InstallToEarn() {
               <img src={logoUrl} alt="WattsUp Energy" className="h-14 w-14 rounded-md object-contain" />
               <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
             </div>
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
           </div>
         </nav>
         {}
@@ -560,10 +548,6 @@ export default function InstallToEarn() {
             <img src={logoUrl} alt="WattsUp Energy" className="h-10 w-10 rounded-md object-contain" />
             <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
           </div>
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
         </div>
       </nav>
       {}

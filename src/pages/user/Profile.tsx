@@ -11,8 +11,7 @@ import {
   Phone, 
   Shield,
   ArrowLeft,
-  CheckCircle,
-  Zap
+  CheckCircle
 } from 'lucide-react';
 const logoUrl = '/Assets/logo.png';
 export const Profile = () => {
@@ -95,10 +94,6 @@ export const Profile = () => {
             <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
             <Button variant="outline" onClick={handleLogout} className="text-red-600 hover:text-red-700">
               Logout
             </Button>

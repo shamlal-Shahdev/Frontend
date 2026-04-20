@@ -34,7 +34,9 @@ export const VendorLogin = () => {
       localStorage.setItem('token', response.token);
       localStorage.setItem('userId', response.user.id.toString());
       localStorage.setItem('userRole', response.user.role);
-      navigate('/vendor/dashboard');
+      const complete = !!response.user.companyProfileComplete;
+      localStorage.setItem('vendorCompanyProfileComplete', complete ? 'true' : 'false');
+      navigate(complete ? '/vendor/dashboard' : '/vendor/company-onboarding');
     } catch (err: any) {
       let errorMessage = 'Invalid credentials. Please check your email and password.';
       if (err.response?.data) {

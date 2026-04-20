@@ -30,6 +30,20 @@ interface LoadCalculatorSectionProps {
   onApplySuggestedKw: (kw: number) => void;
   disabled?: boolean;
 }
+
+const APPLIANCE_MAX_QTY: Partial<Record<LoadRowState['applianceId'], number>> = {
+  fan: 10,
+  tubelight: 10,
+  ledBulb: 10,
+  ledTv: 10,
+  refrigerator: 5,
+  washingMachine: 5,
+  iron: 5,
+  splitAc: 5,
+  microwave: 5,
+  computerLaptop: 5,
+};
+
 export function LoadCalculatorSection({
   rows,
   onRowsChange,
@@ -40,6 +54,26 @@ export function LoadCalculatorSection({
   const updateRow = (index: number, patch: Partial<LoadRowState>) => {
     const next = rows.map((r, i) => (i === index ? { ...r, ...patch } : r));
     onRowsChange(next);
+  };
+
+  const handleQtyChange = (index: number, applianceId: LoadRowState['applianceId'], value: string) => {
+    if (value === '') {
+      updateRow(index, { qty: '' });
+      return;
+    }
+
+    const parsed = parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+      return;
+    }
+
+    const maxQty = APPLIANCE_MAX_QTY[applianceId];
+    const safeQty = Math.max(0, maxQty ? Math.min(parsed, maxQty) : parsed);
+    updateRow(index, { qty: String(safeQty) });
+  };
+
+  const preventWheelValueChange = (e: React.WheelEvent<HTMLInputElement>) => {
+    e.currentTarget.blur();
   };
   const handleTypeChange = (
     index: number,
@@ -76,6 +110,7 @@ export function LoadCalculatorSection({
           const index = rows.findIndex((r) => r.applianceId === def.id);
           if (index < 0) return null;
           const row = rows[index];
+          const maxQty = APPLIANCE_MAX_QTY[def.id];
           const line = lineTotalWatts(row);
           return (
             <div
@@ -127,11 +162,13 @@ export function LoadCalculatorSection({
                   id={`q-${def.id}`}
                   type="number"
                   min={0}
+                  max={maxQty}
                   step={1}
                   className="h-9 mt-1"
                   placeholder="0"
                   value={row.qty}
-                  onChange={(e) => updateRow(index, { qty: e.target.value })}
+                  onChange={(e) => handleQtyChange(index, def.id, e.target.value)}
+                  onWheel={preventWheelValueChange}
                   disabled={disabled}
                 />
               </div>

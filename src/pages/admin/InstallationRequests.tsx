@@ -175,10 +175,6 @@ export const InstallationRequests = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Installation Requests</h1>
-          <Button variant="outline" onClick={() => navigate('/admin/dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
         </div>
         {error && (
           <Card className="mb-6 border-red-200 bg-red-50">

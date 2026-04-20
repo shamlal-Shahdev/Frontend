@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/api/axios.config';
+import { vendorApi } from '@/api/vendor.api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,13 +97,20 @@ export const VendorProfile = () => {
       setError('Phone must be in format +92 followed by 10 digits');
       return;
     }
+    if (!formData.companyName.trim()) {
+      setError('Company name is required');
+      return;
+    }
     setUpdating(true);
     try {
       const response = await api.patch('/auth/me', {
         name: formData.name,
         phone: formData.phone || null,
-        companyName: formData.companyName || null
       });
+      await vendorApi.upsertCompanyProfile({
+        companyName: formData.companyName.trim(),
+      });
+      localStorage.setItem('vendorCompanyProfileComplete', 'true');
       setProfile(response.data);
       setSuccess('Profile updated successfully!');
       setIsEditing(false);
@@ -117,6 +125,7 @@ export const VendorProfile = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
+    localStorage.removeItem('vendorCompanyProfileComplete');
     navigate('/vendor/login');
   };
   if (loading) {
@@ -136,10 +145,6 @@ export const VendorProfile = () => {
             <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate('/vendor/dashboard')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
             <Button variant="outline" onClick={handleLogout} className="text-red-600 hover:text-red-700">
               Logout
             </Button>

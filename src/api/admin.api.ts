@@ -40,6 +40,38 @@ interface AdminDashboardData {
     blockchainFailed: number;
   };
 }
+export interface AdminRewardTransactionUser {
+  id: number;
+  name: string;
+  email: string;
+}
+export interface AdminRewardTransactionInstallation {
+  id: number;
+  name?: string;
+  location?: string;
+}
+export interface AdminRewardTransaction {
+  id: number;
+  userId: number;
+  installationId: number;
+  tokensAmount: string | number;
+  tokensPerKwh: string | number;
+  kwhRewarded: string | number;
+  txHash: string | null;
+  reason: string;
+  oracleId: number | null;
+  vendorUsageBatchId: number | null;
+  usagePeriodYearMonth: string | null;
+  issuedAt: string;
+  user?: AdminRewardTransactionUser;
+  installation?: AdminRewardTransactionInstallation;
+}
+export interface AdminRewardTransactionsResponse {
+  items: AdminRewardTransaction[];
+  total: number;
+  page: number;
+  limit: number;
+}
 interface KycDocument {
   id: number;
   userId: number;
@@ -72,13 +104,17 @@ interface KycEntity {
   adminNotes: string | null;
   submittedAt: string;
   reviewedAt: string | null;
+  /** Per-submission status (source of truth after backend refactor). */
+  status?: string;
+  rejectionReason?: string | null;
   user?: {
     id: number;
     name: string;
     email: string;
     phone: string;
     isVerified: boolean;
-    kycStatus: string;
+    /** Legacy; prefer `status` on the KYC row. */
+    kycStatus?: string;
     createdAt: string;
     updatedAt: string;
   };
@@ -217,5 +253,14 @@ export const adminApi = {
   },
   deleteInstallation: async (id: number): Promise<void> => {
     await api.delete(`/admin/installations/${id}`);
+  },
+  getRewardTransactions: async (
+    page: number = 1,
+    limit: number = 25,
+  ): Promise<AdminRewardTransactionsResponse> => {
+    const response = await api.get<AdminRewardTransactionsResponse>('/reward-transactions', {
+      params: { page, limit },
+    });
+    return response.data;
   },
 };

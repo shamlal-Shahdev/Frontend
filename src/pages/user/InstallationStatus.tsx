@@ -32,6 +32,7 @@ interface InstallationEntity {
   installationType: string;
   capacityKw: number;
   location: string;
+  meterId?: string | null;
   status: 'submitted' | 'assigned' | 'in_progress' | 'completed' | 'rejected';
   isActive: boolean;
   registeredAt: string;
@@ -62,6 +63,9 @@ export const InstallationStatus = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedInstallationId, setSelectedInstallationId] = useState<number | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const completedInstallation = installations.find(
+    (installation) => installation.status === 'completed',
+  );
   useEffect(() => {
     loadInstallations();
   }, [page]);
@@ -181,10 +185,6 @@ export const InstallationStatus = () => {
           <div className="flex items-center gap-2">
             <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
           </div>
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
         </div>
       </nav>
       {}
@@ -197,6 +197,25 @@ export const InstallationStatus = () => {
           {error && (
             <Card className="mb-6 border-red-200 bg-red-50">
               <CardContent className="p-4 text-red-700">{error}</CardContent>
+            </Card>
+          )}
+          {completedInstallation && (
+            <Card className="mb-6 border-green-200 bg-green-50">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-2 text-green-800">
+                  <CheckCircle className="w-5 h-5 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-semibold">Congratulations! Your installation has been completed.</p>
+                    <p className="text-sm mt-1">
+                      Your meter ID is{' '}
+                      <span className="font-medium">
+                        {completedInstallation.meterId?.trim() || 'assigned by the vendor'}
+                      </span>
+                      . You will be rewarded at month end based on the energy your system generates.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           )}
           {installations.length === 0 ? (
@@ -214,7 +233,7 @@ export const InstallationStatus = () => {
             <>
               <Card>
                 <CardHeader>
-                  <CardTitle>My Installation Requests ({total})</CardTitle>
+                  <CardTitle>My Installation Request</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
@@ -228,7 +247,7 @@ export const InstallationStatus = () => {
                           <th className="text-left py-3 px-4 font-semibold">Location</th>
                           <th className="text-left py-3 px-4 font-semibold">Status</th>
                           <th className="text-left py-3 px-4 font-semibold">Submitted</th>
-                          <th className="text-left py-3 px-4 font-semibold">Actions</th>
+                          
                         </tr>
                       </thead>
                       <tbody>

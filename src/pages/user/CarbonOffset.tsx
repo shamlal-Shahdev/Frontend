@@ -1,158 +1,132 @@
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
+import { useEffect, useMemo, useState } from 'react';
+import { dashboardApi } from '@/api/dashboard.api';
+import type { DashboardData } from '@/types/api.types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  Leaf, 
-  Zap, 
-  Clock,
-  ArrowLeft,
-  LayoutDashboard,
-  Wallet,
-  TrendingUp,
-  Award,
-  ShoppingBag,
-  FileCheck,
-  Menu,
-  X,
-  User,
-  LogOut,
-  Search,
-  Bell,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { Leaf } from 'lucide-react';
+
 export const CarbonOffset = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const navItems = [
-    { path: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-    { path: '/wallet', label: 'Wallet', icon: Wallet },
-    { path: '/install-to-earn', label: 'Install to Earn', icon: Zap },
-    { path: '/energy/upload', label: 'Energy', icon: TrendingUp },
-    { path: '/certificates', label: 'Certificates', icon: Award },
-    { path: '/carbon', label: 'CO₂ Offset', icon: Leaf },
-    { path: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
-    { path: '/predict', label: 'Predict & Win', icon: FileCheck },
-  ];
-  const isActive = (path: string) => location.pathname === path;
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
-    navigate('/login');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await dashboardApi.getUserDashboard();
+      setData(response);
+    } catch (err: unknown) {
+      console.error('Failed to load carbon data:', err);
+      setError('Unable to load carbon footprint data right now. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
-  return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <aside className={cn(
-        "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
-        sidebarOpen ? "w-64" : "w-20"
-      )}>
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            {sidebarOpen && (
-              <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
-            )}
-          </div>
-        </div>
-        <nav className="flex-1 px-4 py-4 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-            return (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-                  active
-                    ? "bg-green-50 text-green-700 font-medium"
-                    : "text-gray-700 hover:bg-gray-50"
-                )}
-              >
-                <Icon className={cn("w-5 h-5 flex-shrink-0", active && "text-green-600")} />
-                {sidebarOpen && <span>{item.label}</span>}
-              </button>
-            );
-          })}
-        </nav>
-        <div className="p-4 border-t border-gray-200">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="w-full"
-          >
-            {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </Button>
-        </div>
-      </aside>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </Button>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <User className="w-5 h-5 text-green-600" />
-                </div>
-                <Button variant="ghost" size="icon" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </header>
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-4xl mx-auto">
-            <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-white">
-              <CardContent className="pt-12 pb-12">
-                <div className="text-center space-y-6">
-                  <div className="flex justify-center">
-                    <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
-                      <Leaf className="w-12 h-12 text-green-600" />
-                    </div>
-                  </div>
-                  <div>
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">CO₂ Offset</h1>
-                    <p className="text-xl text-gray-600 mb-4">Coming Soon</p>
-                    <div className="flex items-center justify-center gap-2 text-gray-500">
-                      <Clock className="w-5 h-5" />
-                      <span>We're working on something amazing!</span>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 max-w-md mx-auto">
-                    Track your carbon footprint reduction, view detailed CO₂ offset metrics, 
-                    and see the positive environmental impact of your renewable energy contributions.
-                  </p>
-                  <div className="pt-4">
-                    <Button onClick={() => navigate('/dashboard')} variant="outline">
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back to Dashboard
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+
+  useEffect(() => {
+    void loadData();
+  }, []);
+
+  const currentMonthLabel = useMemo(
+    () => new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    [],
+  );
+
+  const recentFirstTrend = useMemo(() => {
+    if (!data?.carbonReductionTrend) {
+      return [];
+    }
+    return [...data.carbonReductionTrend].sort((a, b) => b.month.localeCompare(a.month));
+  }, [data?.carbonReductionTrend]);
+
+  const formatKg = (value?: number) => {
+    const safeValue = Number.isFinite(value) ? Number(value) : 0;
+    return `${safeValue.toFixed(2)} kg CO2`;
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="pt-6 text-center text-gray-600">Loading carbon data…</CardContent>
+        </Card>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="pt-6 space-y-4 text-center">
+            <p className="text-gray-700">{error}</p>
+            <Button type="button" onClick={() => void loadData()}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Carbon Reduction</h1>
+        <p className="text-gray-500 mt-1">Your monthly impact based on rewarded user energy generation.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Leaf className="w-5 h-5 text-green-600" />
+              This Month ({currentMonthLabel})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-gray-900">{formatKg(data?.monthlyCarbonReducedKg)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Reduced (Last 6 Months)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-gray-900">{formatKg(data?.totalCarbonReducedKg)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Monthly Carbon Reduction Trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {recentFirstTrend.length > 0 ? (
+            <div className="space-y-3">
+              {recentFirstTrend.map((item) => {
+                const monthLabel = new Date(`${item.month}-01`).toLocaleDateString('en-US', {
+                  month: 'short',
+                  year: 'numeric',
+                });
+                return (
+                  <div
+                    key={item.month}
+                    className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3"
+                  >
+                    <span className="font-medium text-gray-700">{monthLabel}</span>
+                    <span className="font-semibold text-green-700">{formatKg(item.carbonReducedKg)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-gray-500">No monthly carbon reduction data available yet.</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
