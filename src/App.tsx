@@ -22,6 +22,7 @@ import { InstallationStatus } from "./pages/user/InstallationStatus";
 import { EnergyStatus } from "./pages/user/EnergyStatus";
 import { Wallet } from "./pages/user/Wallet";
 import { Certificates } from "./pages/user/Certificates";
+import VerifyCertificate from "./pages/VerifyCertificate";
 import { CarbonOffset } from "./pages/user/CarbonOffset";
 import { Marketplace } from "./pages/user/Marketplace";
 import { Predict } from "./pages/user/Predict";
@@ -32,6 +33,7 @@ import { KYCDetail } from "./pages/admin/KYCDetail";
 import { InstallationRequests } from "./pages/admin/InstallationRequests";
 import { EnergyRequests } from "./pages/admin/EnergyRequests";
 import { AdminRewardTransactions } from "./pages/admin/AdminRewardTransactions";
+import { AdminCertificates } from "./pages/admin/AdminCertificates";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { UserLayout } from "@/components/user/UserLayout";
 import { VendorLayout } from "@/components/vendor/VendorLayout";
@@ -63,6 +65,8 @@ const App = () => {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
           {}
+          <Route path="/verify-certificate/:certificateId" element={<VerifyCertificate />} />
+          {}
           <Route element={<ProtectedRoute />}>
             <Route path="/kyc" element={<Navigate to="/kyc/info" replace />} />
             <Route path="/kyc/info" element={<KYCInfo />} />
@@ -93,6 +97,7 @@ const App = () => {
               <Route path="installations" element={<InstallationRequests />} />
               <Route path="energy-requests" element={<EnergyRequests />} />
               <Route path="rewards" element={<AdminRewardTransactions />} />
+              <Route path="certificates" element={<AdminCertificates />} />
             </Route>
           </Route>
           {}

@@ -152,6 +152,17 @@ export interface DashboardActivity {
   amount?: number;
 }
 
+export interface LatestCertificateSummary {
+  id: number;
+  certificateId: string;
+  month: number;
+  year: number;
+  energyGenerated: number;
+  rewardAmount: number;
+  achievementLevel: string;
+  issueDate: string;
+}
+
 export interface DashboardData {
   totalEnergyGenerated: number;
   totalTokensEarned: number;
@@ -165,4 +176,5 @@ export interface DashboardData {
   carbonReductionTrend: CarbonReductionTrendData[];
   rewardsDistribution: RewardDistributionData[];
   recentActivity: DashboardActivity[];
+  latestCertificate?: LatestCertificateSummary | null;
 }

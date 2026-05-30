@@ -7,6 +7,7 @@ export interface EnergyRequestListResponse {
 export interface ApproveEnergyRequestDto {
   remark?: string;
   rewardAmount?: number;
+  energyGeneratedKwh: number;
 }
 export interface RejectEnergyRequestDto {
   reason: string;

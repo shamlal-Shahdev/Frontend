@@ -20,6 +20,7 @@ export interface EnergyRequest {
   approvedByAdminId: number | null;
   rewardAmount: number | null;
   blockchainTxHash: string | null;
+  energyGeneratedKwh: number | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { dashboardApi } from '@/api/dashboard.api';
+import { certificateApi } from '@/api/certificate.api';
 import type { DashboardData } from '@/types/api.types';
+import { getApiErrorMessage } from '@/types/certificate.types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Zap, TrendingUp, Award, CloudRain, Activity, Clock, MoreVertical } from 'lucide-react';
+import { Zap, TrendingUp, Award, CloudRain, Activity, Clock, MoreVertical, Download, Loader2 } from 'lucide-react';
 
 export const Dashboard = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DashboardData | null>(null);
+  const [downloadingCert, setDownloadingCert] = useState(false);
 
   const formatNumber = (value?: number, decimals = 2) => {
     const safeValue = Number.isFinite(value) ? Number(value) : 0;
@@ -32,6 +37,26 @@ export const Dashboard = () => {
   useEffect(() => {
     void loadDashboard();
   }, []);
+
+  const handleDownloadLatestCertificate = async () => {
+    if (!data?.latestCertificate) return;
+    setDownloadingCert(true);
+    try {
+      const blob = await certificateApi.downloadMine(data.latestCertificate.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${data.latestCertificate.certificateId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: unknown) {
+      console.error('Certificate download failed:', getApiErrorMessage(err, 'Download failed'));
+    } finally {
+      setDownloadingCert(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -140,6 +165,49 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+      {data?.latestCertificate && (
+        <Card className="mb-8 border-green-200 bg-gradient-to-r from-green-50 to-white">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Award className="w-5 h-5 text-green-600" />
+              Latest Proof of Green Certificate
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <p className="font-mono text-sm text-gray-700">
+                {data.latestCertificate.certificateId}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                {data.latestCertificate.energyGenerated.toFixed(2)} kWh ·{' '}
+                {data.latestCertificate.rewardAmount.toFixed(2)} tokens ·{' '}
+                {data.latestCertificate.achievementLevel}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/certificates')}
+              >
+                View All
+              </Button>
+              <Button
+                type="button"
+                onClick={() => void handleDownloadLatestCertificate()}
+                disabled={downloadingCert}
+              >
+                {downloadingCert ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                Download PDF
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminEnergyApi } from '@/api/admin-energy.api';
+import type { ApproveEnergyRequestDto } from '@/api/admin-energy.api';
 import { EnergyRequest } from '@/api/energy.api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -136,6 +137,7 @@ export const EnergyRequests = () => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [approvalNote, setApprovalNote] = useState('');
   const [rewardAmount, setRewardAmount] = useState('');
+  const [energyGeneratedKwh, setEnergyGeneratedKwh] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -182,13 +184,25 @@ export const EnergyRequests = () => {
     setSelectedRequest(request);
     setApprovalNote('');
     setRewardAmount('');
+    setEnergyGeneratedKwh('');
     setApproveDialogOpen(true);
   };
   const handleApproveSubmit = async () => {
     if (!selectedRequest) return;
+    const parsedKwh = parseFloat(energyGeneratedKwh);
+    if (!Number.isFinite(parsedKwh) || parsedKwh <= 0) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please enter verified energy generated (kWh)',
+        variant: 'destructive',
+      });
+      return;
+    }
     setIsApproving(true);
     try {
-      const dto: any = {};
+      const dto: ApproveEnergyRequestDto = {
+        energyGeneratedKwh: parsedKwh,
+      };
       if (approvalNote.trim()) {
         dto.remark = approvalNote;
       }
@@ -451,6 +465,21 @@ export const EnergyRequests = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="energyGeneratedKwh">Verified Energy Generated (kWh) *</Label>
+                <Input
+                  id="energyGeneratedKwh"
+                  type="number"
+                  step="0.01"
+                  min="0.0001"
+                  placeholder="e.g. 500"
+                  value={energyGeneratedKwh}
+                  onChange={(e) => setEnergyGeneratedKwh(e.target.value)}
+                />
+                <p className="text-xs text-gray-500">
+                  Required for Proof of Green certificate generation
+                </p>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="rewardAmount">Reward Amount (Optional)</Label>
                 <Input

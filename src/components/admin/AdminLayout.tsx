@@ -12,6 +12,7 @@ import {
   X,
   User,
   Coins,
+  Award,
 } from 'lucide-react';
 
 const logoUrl = '/Assets/logo.png';
@@ -22,6 +23,7 @@ const navItems = [
   { path: '/admin/installations', label: 'Installations', icon: Zap },
   { path: '/admin/energy-requests', label: 'Energy Requests', icon: Zap },
   { path: '/admin/rewards', label: 'Rewards', icon: Coins },
+  { path: '/admin/certificates', label: 'Certificates', icon: Award },
 ] as const;
 
 function navItemActive(path: string, pathname: string): boolean {
