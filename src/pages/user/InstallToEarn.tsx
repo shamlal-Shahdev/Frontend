@@ -39,7 +39,6 @@ import {
   XCircle,
   ChevronRight,
 } from 'lucide-react';
-const logoUrl = '/Assets/logo.png';
 interface Vendor {
   id: number;
   name: string;
@@ -344,16 +343,8 @@ export default function InstallToEarn() {
   };
   if (checkingInstallations) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <nav className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={logoUrl} alt="WattsUp Energy" className="h-14 w-14 rounded-md object-contain" />
-              <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
-            </div>
-          </div>
-        </nav>
-        <div className="container mx-auto py-8 px-4">
+      <div className="p-6">
+        <div className="container mx-auto">
           <div className="max-w-2xl mx-auto">
             <Card>
               <CardContent className="py-12 text-center">
@@ -368,18 +359,8 @@ export default function InstallToEarn() {
   if (existingInstallation && existingInstallation.status === 'rejected' && !showResubmitForm) {
     const rejectionReason = existingInstallation.rejectionReason || existingInstallation.adminRemark || 'No reason provided';
     return (
-      <div className="min-h-screen bg-gray-50">
-        {}
-        <nav className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={logoUrl} alt="WattsUp Energy" className="h-14 w-14 rounded-md object-contain" />
-              <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
-            </div>
-          </div>
-        </nav>
-        {}
-        <div className="container mx-auto py-8 px-4">
+      <div className="p-6">
+        <div className="container mx-auto">
           <div className="max-w-2xl mx-auto">
             <Card>
               <CardHeader>
@@ -460,18 +441,8 @@ export default function InstallToEarn() {
   }
   if (existingInstallation && existingInstallation.status !== 'rejected') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        {}
-        <nav className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={logoUrl} alt="WattsUp Energy" className="h-14 w-14 rounded-md object-contain" />
-              <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
-            </div>
-          </div>
-        </nav>
-        {}
-        <div className="container mx-auto py-8 px-4">
+      <div className="p-6">
+        <div className="container mx-auto">
           <div className="max-w-2xl mx-auto">
             <Card>
               <CardHeader>
@@ -540,18 +511,8 @@ export default function InstallToEarn() {
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50">
-      {}
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logoUrl} alt="WattsUp Energy" className="h-10 w-10 rounded-md object-contain" />
-            <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
-          </div>
-        </div>
-      </nav>
-      {}
-      <div className="container mx-auto py-8 px-4">
+    <div className="p-6">
+      <div className="container mx-auto">
         <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>

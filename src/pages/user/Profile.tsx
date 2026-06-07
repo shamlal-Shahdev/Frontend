@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { profileApi } from '@/api/profile.api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,10 +10,14 @@ import {
   Mail, 
   Phone, 
   Shield,
-  ArrowLeft,
   CheckCircle
 } from 'lucide-react';
-const logoUrl = '/Assets/logo.png';
+import {
+  toLocalPakistanPhone,
+  sanitizeLocalPhoneInput,
+  isValidLocalPakistanPhone,
+} from '@/lib/phone';
+
 export const Profile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -34,7 +38,7 @@ export const Profile = () => {
       setProfile(data);
       setFormData({
         name: data.name || '',
-        phone: data.phone || '',
+        phone: toLocalPakistanPhone(data.phone || ''),
       });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load profile');
@@ -47,9 +51,8 @@ export const Profile = () => {
     setError('');
     setSuccess('');
     if (formData.phone && formData.phone.trim() !== '') {
-      const phoneDigits = formData.phone.replace(/\D/g, '');
-      if (phoneDigits.length !== 11) {
-        setError('Phone number must be exactly 11 digits');
+      if (!isValidLocalPakistanPhone(formData.phone)) {
+        setError('Phone number must be 11 digits starting with 03 (e.g., 03001234567)');
         return;
       }
     }
@@ -59,6 +62,10 @@ export const Profile = () => {
       const updated = await profileApi.updateProfile(formData);
       console.log('Profile updated successfully:', updated);
       setProfile(updated);
+      setFormData({
+        name: updated.name || '',
+        phone: toLocalPakistanPhone(updated.phone || ''),
+      });
       setSuccess('Profile updated successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
@@ -73,35 +80,23 @@ export const Profile = () => {
       setUpdating(false);
     }
   };
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
+
+  const hasChanges = useMemo(() => {
+    if (!profile) return false;
+    const savedPhone = toLocalPakistanPhone(profile.phone || '');
+    return formData.name !== (profile.name || '') || formData.phone !== savedPhone;
+  }, [formData, profile]);
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="p-6 flex items-center justify-center min-h-[200px]">
         <div className="text-lg">Loading profile...</div>
       </div>
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50">
-      {}
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logoUrl} alt="WattsUp Energy" className="h-12 w-12 rounded-md object-contain" />
-            <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={handleLogout} className="text-red-600 hover:text-red-700">
-              Logout
-            </Button>
-          </div>
-        </div>
-      </nav>
-      {}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
           <p className="text-gray-500 mt-1">View and update your account information</p>
@@ -119,7 +114,6 @@ export const Profile = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">{profile?.name}</p>
-                  <p className="text-sm text-gray-500">{profile?.role}</p>
                 </div>
               </div>
               <div className="pt-4 border-t space-y-3">
@@ -209,23 +203,21 @@ export const Profile = () => {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => {
-                      const value = e.target.value;
-                      const digitsOnly = value.replace(/\D/g, '').slice(0, 11);
-                      setFormData({ ...formData, phone: digitsOnly });
+                      setFormData({ ...formData, phone: sanitizeLocalPhoneInput(e.target.value) });
                       setError('');
                     }}
                     placeholder="03001234567"
                     maxLength={11}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Optional - Must be exactly 11 digits (e.g., 03001234567)
+                    Optional - 11 digits starting with 03 (e.g., 03001234567)
                   </p>
                 </div>
                 {}
                 <div className="flex gap-3 pt-4">
                   <Button 
                     type="submit" 
-                    disabled={updating}
+                    disabled={updating || !hasChanges}
                     className="flex-1 bg-green-600 hover:bg-green-700"
                   >
                     {updating ? 'Updating...' : 'Update Profile'}

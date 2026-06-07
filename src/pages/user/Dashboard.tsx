@@ -1,62 +1,96 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { dashboardApi } from '@/api/dashboard.api';
-import { certificateApi } from '@/api/certificate.api';
 import type { DashboardData } from '@/types/api.types';
-import { getApiErrorMessage } from '@/types/certificate.types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Zap, TrendingUp, Award, CloudRain, Activity, Clock, MoreVertical, Download, Loader2 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
+import { Zap, TrendingUp, Award, CloudRain, Activity, Clock, Loader2 } from 'lucide-react';
+
+const TREND_MONTH_OPTIONS = [
+  { value: '3', label: 'Last 3 months' },
+  { value: '6', label: 'Last 6 months' },
+  { value: '12', label: 'Last 12 months' },
+] as const;
+
+const energyChartConfig = {
+  energy: {
+    label: 'Energy (kWh)',
+    color: '#22c55e',
+  },
+} satisfies ChartConfig;
 
 export const Dashboard = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [trendLoading, setTrendLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DashboardData | null>(null);
-  const [downloadingCert, setDownloadingCert] = useState(false);
+  const [trendMonths, setTrendMonths] = useState(6);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const formatNumber = (value?: number, decimals = 2) => {
     const safeValue = Number.isFinite(value) ? Number(value) : 0;
     return safeValue.toFixed(decimals);
   };
 
-  const loadDashboard = async () => {
-    setLoading(true);
-    setError(null);
+  const loadDashboard = async (months = trendMonths, trendOnly = false) => {
+    if (trendOnly) {
+      setTrendLoading(true);
+    } else {
+      setLoading(true);
+      setError(null);
+    }
     try {
-      const response = await dashboardApi.getUserDashboard();
-      setData(response);
+      const response = await dashboardApi.getUserDashboard(months);
+      setData((prev) =>
+        trendOnly && prev
+          ? { ...prev, energyGenerationTrend: response.energyGenerationTrend }
+          : response,
+      );
     } catch (err: unknown) {
       console.error('Failed to load dashboard:', err);
-      setError('Failed to load dashboard data. Please try again.');
+      if (!trendOnly) {
+        setError('Failed to load dashboard data. Please try again.');
+      }
     } finally {
-      setLoading(false);
+      if (trendOnly) {
+        setTrendLoading(false);
+      } else {
+        setLoading(false);
+        setHasLoaded(true);
+      }
     }
   };
 
   useEffect(() => {
-    void loadDashboard();
+    void loadDashboard(trendMonths);
   }, []);
 
-  const handleDownloadLatestCertificate = async () => {
-    if (!data?.latestCertificate) return;
-    setDownloadingCert(true);
-    try {
-      const blob = await certificateApi.downloadMine(data.latestCertificate.id);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${data.latestCertificate.certificateId}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err: unknown) {
-      console.error('Certificate download failed:', getApiErrorMessage(err, 'Download failed'));
-    } finally {
-      setDownloadingCert(false);
-    }
-  };
+  useEffect(() => {
+    if (!hasLoaded) return;
+    void loadDashboard(trendMonths, true);
+  }, [trendMonths]);
+
+  const energyChartData = useMemo(
+    () =>
+      (data?.energyGenerationTrend ?? []).map((item) => ({
+        month: new Date(`${item.month}-01`).toLocaleDateString('en-US', { month: 'short' }),
+        energy: item.energy,
+      })),
+    [data?.energyGenerationTrend],
+  );
 
   if (loading) {
     return (
@@ -88,10 +122,7 @@ export const Dashboard = () => {
         <p className="text-gray-500 mt-1">Welcome back! Here&apos;s your renewable energy overview.</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="hover:shadow-lg transition-shadow relative">
-          <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8" type="button">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -102,16 +133,13 @@ export const Dashboard = () => {
                   <p className="text-sm font-medium text-gray-600">Total Energy Generated</p>
                 </div>
                 <h3 className="text-3xl font-bold text-gray-900">
-                  {formatNumber(data?.totalEnergyGenerated)} <span className="text-xl">kWh</span>
+                  {formatNumber(data?.totalEnergyGenerated, 1)} <span className="text-xl">kWh</span>
                 </h3>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-lg transition-shadow relative">
-          <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8" type="button">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -121,15 +149,12 @@ export const Dashboard = () => {
                   </div>
                   <p className="text-sm font-medium text-gray-600">Wallet Balance</p>
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900">{formatNumber(data?.tokensAvailable)}</h3>
+                <h3 className="text-3xl font-bold text-gray-900">{formatNumber(data?.tokensAvailable, 1)}</h3>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-lg transition-shadow relative">
-          <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8" type="button">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -140,16 +165,13 @@ export const Dashboard = () => {
                   <p className="text-sm font-medium text-gray-600">Monthly Carbon Reduced</p>
                 </div>
                 <h3 className="text-3xl font-bold text-gray-900">
-                  {formatNumber(data?.monthlyCarbonReducedKg)} <span className="text-xl">kg CO2</span>
+                  {formatNumber(data?.monthlyCarbonReducedKg, 1)} <span className="text-xl">kg CO2</span>
                 </h3>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-lg transition-shadow relative">
-          <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8" type="button">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -165,85 +187,78 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-      {data?.latestCertificate && (
-        <Card className="mb-8 border-green-200 bg-gradient-to-r from-green-50 to-white">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Award className="w-5 h-5 text-green-600" />
-              Latest Proof of Green Certificate
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <p className="font-mono text-sm text-gray-700">
-                {data.latestCertificate.certificateId}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                {data.latestCertificate.energyGenerated.toFixed(2)} kWh ·{' '}
-                {data.latestCertificate.rewardAmount.toFixed(2)} tokens ·{' '}
-                {data.latestCertificate.achievementLevel}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate('/certificates')}
-              >
-                View All
-              </Button>
-              <Button
-                type="button"
-                onClick={() => void handleDownloadLatestCertificate()}
-                disabled={downloadingCert}
-              >
-                {downloadingCert ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4 mr-2" />
-                )}
-                Download PDF
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <CardTitle>Energy Generation Trend</CardTitle>
-              <Button variant="outline" size="sm" type="button">
-                Last 6 months
-              </Button>
+              <Select
+                value={String(trendMonths)}
+                onValueChange={(value) => setTrendMonths(Number(value))}
+                disabled={trendLoading}
+              >
+                <SelectTrigger className="w-[150px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TREND_MONTH_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent>
-            {data?.energyGenerationTrend && data.energyGenerationTrend.length > 0 ? (
-              <div className="h-64">
-                <div className="flex items-end justify-between h-full gap-2">
-                  {data.energyGenerationTrend.map((item, idx) => {
-                    const maxEnergy = Math.max(...data.energyGenerationTrend.map((d) => d.energy), 1);
-                    const height = maxEnergy > 0 ? (item.energy / maxEnergy) * 100 : 0;
-                    const monthName = new Date(item.month + '-01').toLocaleDateString('en-US', {
-                      month: 'short',
-                    });
-                    return (
-                      <div key={idx} className="flex-1 flex flex-col items-center gap-2">
-                        <div className="w-full flex flex-col items-center justify-end h-48">
-                          <div
-                            className="w-full bg-gradient-to-t from-green-500 to-green-400 rounded-t transition-all hover:from-green-600 hover:to-green-500"
-                            style={{ height: `${height}%`, minHeight: item.energy > 0 ? '4px' : '0' }}
-                            title={`${item.energy.toFixed(2)} kWh`}
-                          />
-                        </div>
-                        <div className="text-xs text-gray-600 font-medium">{monthName}</div>
-                        <div className="text-xs text-gray-500">{item.energy.toFixed(1)}</div>
-                      </div>
-                    );
-                  })}
-                </div>
+            {trendLoading ? (
+              <div className="h-64 flex items-center justify-center text-gray-400">
+                <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                <p>Loading trend data…</p>
               </div>
+            ) : energyChartData.length > 0 ? (
+              <ChartContainer config={energyChartConfig} className="h-64 w-full">
+                <AreaChart data={energyChartData} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="energyWaveGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.45} />
+                      <stop offset="50%" stopColor="#4ade80" stopOpacity={0.2} />
+                      <stop offset="100%" stopColor="#86efac" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-gray-200" />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    className="text-xs text-gray-500"
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    className="text-xs text-gray-500"
+                    tickFormatter={(value: number) => `${value}`}
+                  />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value) => [`${Number(value).toFixed(2)} kWh`, 'Energy']}
+                      />
+                    }
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="energy"
+                    stroke="#16a34a"
+                    strokeWidth={2.5}
+                    fill="url(#energyWaveGradient)"
+                    dot={{ fill: '#16a34a', strokeWidth: 2, r: 3 }}
+                    activeDot={{ r: 5, fill: '#15803d' }}
+                  />
+                </AreaChart>
+              </ChartContainer>
             ) : (
               <div className="h-64 flex items-center justify-center text-gray-400">
                 <p>No energy generation data available</p>

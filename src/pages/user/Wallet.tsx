@@ -10,7 +10,7 @@ import {
   Clock,
   Loader2,
 } from 'lucide-react';
-const logoUrl = '/Assets/logo.png';
+
 export const Wallet = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -64,7 +64,7 @@ export const Wallet = () => {
   const formatBalance = (balance: string | number): string => {
     const numBalance = typeof balance === 'string' ? parseFloat(balance) : balance;
     if (isNaN(numBalance)) return '0.00';
-    return numBalance.toFixed(8);
+    return numBalance.toFixed(2);
   };
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -78,7 +78,7 @@ export const Wallet = () => {
   };
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="p-6 flex items-center justify-center min-h-[200px]">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-green-600" />
           <div className="text-lg text-gray-600">Loading wallet balance...</div>
@@ -87,20 +87,8 @@ export const Wallet = () => {
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50">
-      {}
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-          <div className="text-center">
-            <img src={logoUrl} alt="WattsUp Energy" className="w-16 h-16" />
-        </div>
-            <span className="text-xl font-bold text-gray-900">WattsUp Energy</span>
-          </div>
-        </div>
-      </nav>
-      {}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="p-6">
+      <div className="max-w-7xl mx-auto">
         {}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">My Wallet</h1>

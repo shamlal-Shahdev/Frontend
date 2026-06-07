@@ -4,18 +4,17 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   Zap,
-  TrendingUp,
   Award,
-  Activity,
   User,
   Wallet,
   LayoutDashboard,
-  Bell,
   ShoppingBag,
   FileCheck,
   Leaf,
   Menu,
   X,
+  ArrowLeft,
+  LogOut,
 } from 'lucide-react';
 
 const logoUrl = '/Assets/logo.png';
@@ -24,7 +23,6 @@ const navItems = [
   { path: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { path: '/wallet', label: 'Wallet', icon: Wallet },
   { path: '/install-to-earn', label: 'Install to Earn', icon: Zap },
-  { path: '/energy/status', label: 'Energy', icon: TrendingUp },
   { path: '/certificates', label: 'Certificates', icon: Award },
   { path: '/carbon', label: 'CO₂ Offset', icon: Leaf },
   { path: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
@@ -32,9 +30,6 @@ const navItems = [
 ] as const;
 
 function navActive(path: string, pathname: string): boolean {
-  if (path === '/energy/status') {
-    return pathname === '/energy/status' || pathname.startsWith('/energy/');
-  }
   return pathname === path;
 }
 
@@ -60,6 +55,11 @@ export function UserLayout() {
     void loadUser();
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <aside
@@ -82,24 +82,7 @@ export function UserLayout() {
             )}
           </div>
         </div>
-        <div className="p-4">
-          <Button
-            type="button"
-            onClick={() => navigate('/energy/status')}
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
-            size="lg"
-          >
-            {sidebarOpen ? (
-              <>
-                <Activity className="w-4 h-4 mr-2" />
-                Energy status
-              </>
-            ) : (
-              <Activity className="w-4 h-4" />
-            )}
-          </Button>
-        </div>
-        <nav className="flex-1 px-4 space-y-1">
+        <nav className="flex-1 px-4 py-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = navActive(item.path, location.pathname);
@@ -121,7 +104,20 @@ export function UserLayout() {
             );
           })}
         </nav>
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 space-y-2">
+          <Button
+            variant="outline"
+            size="sm"
+            type="button"
+            onClick={handleLogout}
+            className={cn(
+              'w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200',
+              sidebarOpen ? 'justify-start' : 'justify-center px-0',
+            )}
+          >
+            <LogOut className="w-4 h-4" />
+            {sidebarOpen && <span className="ml-2">Logout</span>}
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -135,12 +131,22 @@ export function UserLayout() {
       </aside>
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
-          <div className="flex items-center">
-            <div className="flex items-center gap-4 ml-auto">
-              <Button variant="ghost" size="icon" className="relative" type="button">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+          <div className="flex items-center justify-between w-full">
+            {location.pathname === '/profile' ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/dashboard')}
+                className="text-gray-700 hover:text-gray-900"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
               </Button>
+            ) : (
+              <div />
+            )}
+            <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
