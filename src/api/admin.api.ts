@@ -72,6 +72,20 @@ export interface AdminRewardTransactionsResponse {
   page: number;
   limit: number;
 }
+export interface AdminRewardUserSummary {
+  userId: number;
+  user: AdminRewardTransactionUser;
+  transactionCount: number;
+  totalTokens: number;
+  totalKwh: number;
+  lastIssuedAt: string;
+}
+export interface AdminRewardUsersResponse {
+  items: AdminRewardUserSummary[];
+  total: number;
+  page: number;
+  limit: number;
+}
 interface KycDocument {
   id: number;
   userId: number;
@@ -254,12 +268,22 @@ export const adminApi = {
   deleteInstallation: async (id: number): Promise<void> => {
     await api.delete(`/admin/installations/${id}`);
   },
+  getRewardUsers: async (
+    page: number = 1,
+    limit: number = 25,
+  ): Promise<AdminRewardUsersResponse> => {
+    const response = await api.get<AdminRewardUsersResponse>('/reward-transactions/users', {
+      params: { page, limit },
+    });
+    return response.data;
+  },
   getRewardTransactions: async (
     page: number = 1,
     limit: number = 25,
+    userId?: number,
   ): Promise<AdminRewardTransactionsResponse> => {
     const response = await api.get<AdminRewardTransactionsResponse>('/reward-transactions', {
-      params: { page, limit },
+      params: { page, limit, ...(userId ? { userId } : {}) },
     });
     return response.data;
   },

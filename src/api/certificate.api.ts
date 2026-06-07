@@ -6,6 +6,7 @@ import type {
   CertificateListQuery,
   CertificateListResponse,
   CertificateStats,
+  CertificateUsersResponse,
   CertificateVerifyResult,
   LatestCertificateSummary,
   CertificateMonthOverview,
@@ -71,6 +72,16 @@ export const certificateApi = {
 };
 
 export const adminCertificateApi = {
+  getUsers: async (
+    page: number = 1,
+    limit: number = 25,
+  ): Promise<CertificateUsersResponse> => {
+    const response = await api.get<CertificateUsersResponse>('/admin/certificates/users', {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+
   getAll: async (query?: CertificateListQuery): Promise<CertificateListResponse> => {
     const response = await api.get<CertificateListResponse>('/admin/certificates', {
       params: query,

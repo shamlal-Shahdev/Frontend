@@ -97,6 +97,22 @@ export interface CertificateAdminStats {
   totalRewardsDistributed: number;
 }
 
+export interface CertificateUserSummary {
+  userId: number;
+  user: { id: number; name: string; email: string };
+  certificateCount: number;
+  totalEnergy: number;
+  totalRewards: number;
+  lastIssuedAt: string;
+}
+
+export interface CertificateUsersResponse {
+  items: CertificateUserSummary[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface CertificateListQuery {
   page?: number;
   limit?: number;
