@@ -24,10 +24,19 @@ function defaultPeriodYm(): string {
   return `${y}-${m}`;
 }
 
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+function formatPeriodLabel(periodYearMonth: string): string {
+  const [year, month] = periodYearMonth.split('-');
+  return `${MONTH_NAMES[parseInt(month, 10) - 1]} ${year}`;
+}
+
 export const VendorUsageImport = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [periodYearMonth, setPeriodYearMonth] = useState(defaultPeriodYm);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
@@ -86,7 +95,7 @@ export const VendorUsageImport = () => {
     }
     setUploading(true);
     try {
-      await vendorApi.uploadUsageImport(periodYearMonth, file);
+      await vendorApi.uploadUsageImport(defaultPeriodYm(), file);
       toast({
         title: 'Import processed',
         description: 'Usage file was uploaded and rewards were applied where rows matched completed installs.',
@@ -145,13 +154,15 @@ export const VendorUsageImport = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="period">Calendar month</Label>
-                <Input
+                <div
                   id="period"
-                  type="month"
-                  value={periodYearMonth}
-                  onChange={(e) => setPeriodYearMonth(e.target.value)}
-                  required
-                />
+                  className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-900"
+                >
+                  {formatPeriodLabel(defaultPeriodYm())}
+                </div>
+                <p className="text-xs text-gray-500">
+                  Only the current calendar month can be uploaded.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="file">CSV or Excel (.xlsx)</Label>

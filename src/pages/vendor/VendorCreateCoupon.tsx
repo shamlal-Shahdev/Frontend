@@ -15,7 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import {
   Loader2,
-  Tag,
   Coins,
   Calendar,
   Package,
@@ -128,16 +127,11 @@ export const VendorCreateCoupon = () => {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900">Create Coupon</h1>
-          <p className="text-sm text-gray-500">
-            Publish a new offer to the WattsUp marketplace
-          </p>
-        </div>
-        <div className="hidden sm:flex w-10 h-10 rounded-full bg-orange-100 items-center justify-center shrink-0">
-          <Tag className="w-5 h-5 text-orange-600" />
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Create Coupon</h1>
+        <p className="text-sm text-gray-500">
+          Publish a new offer to the WattsUp marketplace
+        </p>
       </div>
 
       <Card className="border-orange-100 shadow-sm overflow-hidden border-t-4 border-t-orange-500">

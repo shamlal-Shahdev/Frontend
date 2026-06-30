@@ -300,12 +300,6 @@ export const Predict = () => {
                         <p className="font-medium text-gray-900 mb-2">Reward tiers</p>
                         <RewardTiersTable tiers={status.rewardTiers.tiers} compact />
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900 mb-1">Accuracy formula</p>
-                        <p className="font-mono text-xs bg-gray-100 rounded px-3 py-2 text-gray-800">
-                          Accuracy = (1 − |Prediction − Actual| / Actual) × 100
-                        </p>
-                      </div>
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
