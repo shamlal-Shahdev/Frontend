@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { certificateApi } from '@/api/certificate.api';
-import type {
-  Certificate,
-  CertificateMonthOverview,
-  CertificateStats,
-} from '@/types/certificate.types';
+import type { Certificate, CertificateMonthOverview } from '@/types/certificate.types';
 import {
   ACHIEVEMENT_LABELS,
   BADGE_LABELS,
@@ -24,16 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Award,
-  Download,
-  Leaf,
-  Loader2,
-  TrendingDown,
-  TrendingUp,
-  Zap,
-} from 'lucide-react';
+import { Award, CheckCircle2, Coins, Download, Loader2, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const achievementColors: Record<string, string> = {
   bronze: 'bg-amber-100 text-amber-800 border-amber-200',
@@ -42,27 +31,48 @@ const achievementColors: Record<string, string> = {
   platinum: 'bg-purple-100 text-purple-800 border-purple-200',
 };
 
+const tabTriggerClass =
+  'rounded-full px-5 py-2 text-sm font-medium text-white border-0 shadow-none data-[state=active]:bg-green-800 data-[state=active]:text-white data-[state=inactive]:bg-green-600 data-[state=inactive]:text-white hover:bg-green-700';
+
 function monthOverviewKey(month: number, year: number): string {
   return `${year}-${month}`;
 }
 
+function formatMonthSelectLabel(item: CertificateMonthOverview): string {
+  const month = formatCertificateMonth(item.month, item.year);
+  const kwh = `${item.energyGeneratedKwh.toFixed(2)} kWh`;
+  const status = item.downloadable ? 'Certificate ready' : 'Pending';
+  return `${month} - ${kwh} - ${status}`;
+}
+
+function AchievementBadges({ certificate }: { certificate: Certificate }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Badge
+        variant="outline"
+        className={cn('font-medium', achievementColors[certificate.achievementLevel])}
+      >
+        {ACHIEVEMENT_LABELS[certificate.achievementLevel]}
+      </Badge>
+      <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200 font-medium">
+        {BADGE_LABELS[certificate.badge]}
+      </Badge>
+    </div>
+  );
+}
+
 export const Certificates = () => {
   const { toast } = useToast();
+
   const [loading, setLoading] = useState(true);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [monthlyOverview, setMonthlyOverview] = useState<CertificateMonthOverview[]>([]);
   const [total, setTotal] = useState(0);
-  const [stats, setStats] = useState<CertificateStats | null>(null);
   const [filterMonth, setFilterMonth] = useState('');
   const [filterYear, setFilterYear] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [selectedPeriodKey, setSelectedPeriodKey] = useState<string>('');
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
-
-  const downloadableMonths = useMemo(
-    () => monthlyOverview.filter((item) => item.downloadable && item.certificate),
-    [monthlyOverview],
-  );
 
   const selectedMonthOverview = useMemo(() => {
     if (monthlyOverview.length === 0) {
@@ -83,14 +93,12 @@ export const Certificates = () => {
         ...(filterMonth ? { month: parseInt(filterMonth, 10) } : {}),
         ...(filterYear ? { year: parseInt(filterYear, 10) } : {}),
       };
-      const [listResponse, statsResponse, overviewResponse] = await Promise.all([
+      const [listResponse, overviewResponse] = await Promise.all([
         certificateApi.getMine(query),
-        certificateApi.getMyStats(),
         certificateApi.getMyMonthlyOverview(),
       ]);
       setCertificates(listResponse.certificates);
       setTotal(listResponse.total);
-      setStats(statsResponse);
       setMonthlyOverview(overviewResponse);
       if (overviewResponse.length > 0) {
         const preferred =
@@ -143,8 +151,10 @@ export const Certificates = () => {
     );
   }
 
+  const selectedCert = selectedMonthOverview?.certificate ?? null;
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 w-full">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Proof of Green Certificates</h1>
         <p className="text-gray-500 mt-1">
@@ -153,149 +163,136 @@ export const Certificates = () => {
       </div>
 
       <Tabs defaultValue="current">
-        <TabsList>
-          <TabsTrigger value="current">By Month</TabsTrigger>
-          <TabsTrigger value="history">Certificate History</TabsTrigger>
-          <TabsTrigger value="stats">Lifetime Statistics</TabsTrigger>
+        <TabsList className="bg-transparent gap-2 h-auto p-0">
+          <TabsTrigger value="current" className={tabTriggerClass}>
+            By Month
+          </TabsTrigger>
+          <TabsTrigger value="history" className={tabTriggerClass}>
+            Certificate History
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="current" className="mt-4">
-          <Card className="border-green-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-green-600" />
-                Monthly Certificate
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {monthlyOverview.length === 0 ? (
-                <p className="text-gray-600">
-                  No rewarded energy months yet. Complete smart meter verification and earn your
-                  blockchain reward to unlock Proof of Green certificates.
-                </p>
-              ) : (
-                <>
-                  <div className="max-w-sm space-y-2">
-                    <Label htmlFor="monthSelect">Select energy generation month</Label>
-                    <Select
-                      value={selectedPeriodKey}
-                      onValueChange={setSelectedPeriodKey}
-                    >
-                      <SelectTrigger id="monthSelect">
-                        <SelectValue placeholder="Choose a month" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {monthlyOverview.map((item) => (
-                          <SelectItem
-                            key={monthOverviewKey(item.month, item.year)}
-                            value={monthOverviewKey(item.month, item.year)}
-                          >
-                            {formatCertificateMonth(item.month, item.year)} ·{' '}
-                            {item.energyGeneratedKwh.toFixed(2)} kWh
-                            {item.downloadable ? ' · Certificate ready' : ' · Pending'}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+        <TabsContent value="current" className="mt-5">
+          {monthlyOverview.length === 0 ? (
+            <Card className="border-2 border-green-600 rounded-2xl">
+              <CardContent className="py-12 text-center text-gray-600">
+                No rewarded energy months yet. Complete smart meter verification and earn your
+                reward to unlock Proof of Green certificates.
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-2 border-green-600 rounded-2xl overflow-hidden shadow-sm">
+              <div className="p-6">
+                <div className="flex items-start justify-between gap-3 mb-5">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-5 h-5 text-green-600 shrink-0" />
+                    <h2 className="text-lg font-bold text-gray-900">Monthly Certificate</h2>
                   </div>
+                  {selectedCert && <AchievementBadges certificate={selectedCert} />}
+                </div>
 
-                  {selectedMonthOverview && (
-                    <div className="space-y-4 pt-2 border-t">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2 mb-5">
+                  <Label htmlFor="monthSelect" className="text-sm text-gray-600">
+                    Select energy generation month
+                  </Label>
+                  <Select value={selectedPeriodKey} onValueChange={setSelectedPeriodKey}>
+                    <SelectTrigger id="monthSelect" className="w-full h-11">
+                      <SelectValue placeholder="Choose a month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {monthlyOverview.map((item) => (
+                        <SelectItem
+                          key={monthOverviewKey(item.month, item.year)}
+                          value={monthOverviewKey(item.month, item.year)}
+                        >
+                          {formatMonthSelectLabel(item)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedMonthOverview && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                      <div className="rounded-lg border border-gray-200 bg-white p-3 flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                          <Zap className="w-4 h-4 text-purple-600" />
+                        </div>
                         <div>
-                          <p className="text-sm text-gray-500">Energy Generated</p>
-                          <p className="text-xl font-bold">
+                          <p className="text-xs text-gray-500">Energy Generated</p>
+                          <p className="text-sm font-bold text-gray-900">
                             {selectedMonthOverview.energyGeneratedKwh.toFixed(2)} kWh
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Reward Earned</p>
-                          <p className="text-xl font-bold">
-                            {selectedMonthOverview.rewardAmount.toFixed(2)} tokens
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Certificate Status</p>
-                          <p className="text-sm font-medium">
-                            {selectedMonthOverview.downloadable
-                              ? 'Ready to download'
-                              : 'Certificate is being prepared'}
                           </p>
                         </div>
                       </div>
 
-                      {selectedMonthOverview.certificate && (
-                        <>
-                          <p className="text-sm text-gray-500">Certificate ID</p>
-                          <p className="font-mono text-sm">
-                            {selectedMonthOverview.certificate.certificateId}
+                      <div className="rounded-lg border border-gray-200 bg-white p-3 flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                          <Coins className="w-4 h-4 text-amber-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Reward Earned</p>
+                          <p className="text-sm font-bold text-gray-900">
+                            {selectedMonthOverview.rewardAmount.toFixed(2)} tokens
                           </p>
-                          <div className="flex items-center gap-3">
-                            <Badge
-                              variant="outline"
-                              className={
-                                achievementColors[
-                                  selectedMonthOverview.certificate.achievementLevel
-                                ]
-                              }
-                            >
-                              {
-                                ACHIEVEMENT_LABELS[
-                                  selectedMonthOverview.certificate.achievementLevel
-                                ]
-                              }
-                            </Badge>
-                            <Badge variant="outline" className="bg-green-50 text-green-800">
-                              {BADGE_LABELS[selectedMonthOverview.certificate.badge]}
-                            </Badge>
-                          </div>
-                        </>
-                      )}
+                        </div>
+                      </div>
 
-                      {selectedMonthOverview.downloadable &&
-                      selectedMonthOverview.certificate ? (
+                      <div className="rounded-lg border border-gray-200 bg-white p-3 flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Certificate Status</p>
+                          <p className="text-sm font-bold text-gray-900 leading-snug">
+                            {selectedMonthOverview.downloadable
+                              ? 'Ready to download'
+                              : 'Being prepared'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {selectedCert && (
+                      <div className="space-y-3 pt-2 border-t border-gray-100">
+                        <AchievementBadges certificate={selectedCert} />
+
                         <Button
                           type="button"
-                          onClick={() =>
-                            void handleDownload(selectedMonthOverview.certificate as Certificate)
-                          }
-                          disabled={downloadingId === selectedMonthOverview.certificate.id}
+                          className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+                          onClick={() => void handleDownload(selectedCert)}
+                          disabled={downloadingId === selectedCert.id}
                         >
-                          {downloadingId === selectedMonthOverview.certificate.id ? (
+                          {downloadingId === selectedCert.id ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           ) : (
                             <Download className="w-4 h-4 mr-2" />
                           )}
                           Download PDF
                         </Button>
-                      ) : (
-                        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-3">
-                          Energy was verified for{' '}
-                          {formatCertificateMonth(
-                            selectedMonthOverview.month,
-                            selectedMonthOverview.year,
-                          )}
-                          , but the certificate PDF is not available yet. It will appear here once
-                          generation completes.
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
+                      </div>
+                    )}
 
-          {downloadableMonths.length > 0 && (
-            <p className="text-sm text-gray-500 mt-3">
-              {downloadableMonths.length} month
-              {downloadableMonths.length === 1 ? '' : 's'} with downloadable certificates.
-            </p>
+                    {!selectedMonthOverview.downloadable && (
+                      <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
+                        Energy was verified for{' '}
+                        {formatCertificateMonth(
+                          selectedMonthOverview.month,
+                          selectedMonthOverview.year,
+                        )}
+                        , but the certificate PDF is not available yet.
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            </Card>
           )}
         </TabsContent>
 
-        <TabsContent value="history" className="mt-4 space-y-4">
-          <Card>
+        <TabsContent value="history" className="mt-5 space-y-4">
+          <Card className="border border-green-200 rounded-xl">
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
@@ -337,7 +334,12 @@ export const Certificates = () => {
                   </Select>
                 </div>
                 <div className="flex items-end">
-                  <Button type="button" variant="outline" onClick={() => void loadData()}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-green-600 text-green-700"
+                    onClick={() => void loadData()}
+                  >
                     Apply Filters
                   </Button>
                 </div>
@@ -345,7 +347,7 @@ export const Certificates = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border border-green-200 rounded-xl">
             <CardHeader>
               <CardTitle>Certificate History ({total})</CardTitle>
             </CardHeader>
@@ -359,7 +361,7 @@ export const Certificates = () => {
                 certificates.map((cert) => (
                   <div
                     key={cert.id}
-                    className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 border rounded-lg"
+                    className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 border border-gray-200 rounded-xl"
                   >
                     <div className="space-y-1">
                       <p className="font-semibold">{cert.certificateId}</p>
@@ -380,7 +382,7 @@ export const Certificates = () => {
                       <Button
                         type="button"
                         size="sm"
-                        variant="outline"
+                        className="bg-green-600 hover:bg-green-700"
                         onClick={() => void handleDownload(cert)}
                         disabled={downloadingId === cert.id}
                       >
@@ -392,97 +394,6 @@ export const Certificates = () => {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="stats" className="mt-4">
-          {stats && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Award className="w-5 h-5 text-green-600" />
-                    <p className="text-sm text-gray-600">Certificates Earned</p>
-                  </div>
-                  <p className="text-3xl font-bold">{stats.totalCertificates}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap className="w-5 h-5 text-purple-600" />
-                    <p className="text-sm text-gray-600">Total Energy</p>
-                  </div>
-                  <p className="text-3xl font-bold">
-                    {stats.totalEnergyGenerated.toFixed(2)}{' '}
-                    <span className="text-lg">kWh</span>
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Leaf className="w-5 h-5 text-green-600" />
-                    <p className="text-sm text-gray-600">Total CO₂ Offset</p>
-                  </div>
-                  <p className="text-3xl font-bold">{stats.totalCo2OffsetTons.toFixed(2)} tons</p>
-                  <p className="text-xs text-gray-500">{stats.totalCo2OffsetKg.toFixed(2)} kg</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Award className="w-5 h-5 text-amber-600" />
-                    <p className="text-sm text-gray-600">Total Rewards</p>
-                  </div>
-                  <p className="text-3xl font-bold">{stats.totalRewardsEarned.toFixed(2)}</p>
-                </CardContent>
-              </Card>
-
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-lg">Monthly Performance</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <p className="text-sm">
-                    Previous month: <strong>{stats.previousMonthEnergy.toFixed(2)} kWh</strong>
-                  </p>
-                  <p className="text-sm">
-                    Current month: <strong>{stats.currentMonthEnergy.toFixed(2)} kWh</strong>
-                  </p>
-                  <div className="flex items-center gap-2">
-                    {stats.monthOverMonthPercentChange >= 0 ? (
-                      <TrendingUp className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4 text-red-600" />
-                    )}
-                    <span
-                      className={
-                        stats.monthOverMonthPercentChange >= 0
-                          ? 'text-green-700'
-                          : 'text-red-700'
-                      }
-                    >
-                      {stats.monthOverMonthPercentChange >= 0 ? '+' : ''}
-                      {stats.monthOverMonthPercentChange}% vs previous month
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {stats.currentBadge && (
-                <Card className="md:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Sustainability Badge</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Badge variant="outline" className="bg-green-50 text-green-800 text-base px-3 py-1">
-                      {BADGE_LABELS[stats.currentBadge]}
-                    </Badge>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
         </TabsContent>
       </Tabs>
     </div>

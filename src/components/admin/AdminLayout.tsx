@@ -13,7 +13,11 @@ import {
   User,
   Coins,
   Award,
+  Target,
+  ShoppingBag,
+  Banknote,
 } from 'lucide-react';
+import { BackButton } from '@/components/common/BackButton';
 
 const logoUrl = '/Assets/logo.png';
 
@@ -23,7 +27,10 @@ const navItems = [
   { path: '/admin/installations', label: 'Installations', icon: Zap },
   { path: '/admin/energy-requests', label: 'Energy Requests', icon: Zap },
   { path: '/admin/rewards', label: 'Rewards', icon: Coins },
+  { path: '/admin/predictions', label: 'Predict & Win', icon: Target },
   { path: '/admin/certificates', label: 'Certificates', icon: Award },
+  { path: '/admin/marketplace', label: 'Marketplace', icon: ShoppingBag },
+  { path: '/admin/withdrawals', label: 'Withdrawals', icon: Banknote },
 ] as const;
 
 function navItemActive(path: string, pathname: string): boolean {
@@ -63,10 +70,10 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
       <aside
         className={cn(
-          'bg-white border-r border-gray-200 transition-all duration-300 flex flex-col',
+          'bg-white border-r border-gray-200 transition-all duration-300 flex flex-col h-full shrink-0',
           sidebarOpen ? 'w-64' : 'w-20',
         )}
       >
@@ -87,7 +94,7 @@ export function AdminLayout() {
             )}
           </div>
         </div>
-        <nav className="flex-1 px-4 py-4 space-y-1">
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto min-h-0">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = navItemActive(item.path, location.pathname);
@@ -123,7 +130,8 @@ export function AdminLayout() {
       </aside>
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
-          <div className="flex items-center">
+          <div className="flex items-center justify-between w-full gap-4">
+            <BackButton />
             <div className="flex items-center gap-4 ml-auto">
               <Button variant="ghost" size="icon" className="relative" type="button">
                 <Bell className="w-5 h-5" />

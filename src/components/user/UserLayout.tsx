@@ -13,9 +13,9 @@ import {
   Leaf,
   Menu,
   X,
-  ArrowLeft,
   LogOut,
 } from 'lucide-react';
+import { BackButton } from '@/components/common/BackButton';
 
 const logoUrl = '/Assets/logo.png';
 
@@ -61,10 +61,10 @@ export function UserLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
       <aside
         className={cn(
-          'bg-white border-r border-gray-200 transition-all duration-300 flex flex-col',
+          'bg-white border-r border-gray-200 transition-all duration-300 flex flex-col h-full shrink-0',
           sidebarOpen ? 'w-64' : 'w-20',
         )}
       >
@@ -82,7 +82,7 @@ export function UserLayout() {
             )}
           </div>
         </div>
-        <nav className="flex-1 px-4 py-4 space-y-1">
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto min-h-0">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = navActive(item.path, location.pathname);
@@ -131,22 +131,9 @@ export function UserLayout() {
       </aside>
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
-          <div className="flex items-center justify-between w-full">
-            {location.pathname === '/profile' ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/dashboard')}
-                className="text-gray-700 hover:text-gray-900"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-            ) : (
-              <div />
-            )}
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between w-full gap-4">
+            <BackButton />
+            <div className="flex items-center gap-4 ml-auto">
               <div className="flex items-center gap-3">
                 <button
                   type="button"

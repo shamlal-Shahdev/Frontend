@@ -25,6 +25,8 @@ import { Certificates } from "./pages/user/Certificates";
 import VerifyCertificate from "./pages/VerifyCertificate";
 import { CarbonOffset } from "./pages/user/CarbonOffset";
 import { Marketplace } from "./pages/user/Marketplace";
+import { PurchaseSuccess } from "./pages/user/PurchaseSuccess";
+import { MyCoupons } from "./pages/user/MyCoupons";
 import { Predict } from "./pages/user/Predict";
 import { AdminLogin } from "./pages/admin/AdminLogin";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
@@ -34,6 +36,9 @@ import { InstallationRequests } from "./pages/admin/InstallationRequests";
 import { EnergyRequests } from "./pages/admin/EnergyRequests";
 import { AdminRewardTransactions } from "./pages/admin/AdminRewardTransactions";
 import { AdminCertificates } from "./pages/admin/AdminCertificates";
+import { AdminPredictions } from "./pages/admin/AdminPredictions";
+import { AdminMarketplace } from "./pages/admin/AdminMarketplace";
+import { AdminWithdrawals } from "./pages/admin/AdminWithdrawals";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { UserLayout } from "@/components/user/UserLayout";
 import { VendorLayout } from "@/components/vendor/VendorLayout";
@@ -47,6 +52,10 @@ import { VendorProfile } from "./pages/vendor/VendorProfile";
 import { VendorEmailVerificationSent } from "./pages/vendor/VendorEmailVerificationSent";
 import { VendorUsageImport } from "./pages/vendor/VendorUsageImport";
 import { VendorCompanyOnboarding } from "./pages/vendor/VendorCompanyOnboarding";
+import { VendorMarketplaceDashboard } from "./pages/vendor/VendorMarketplaceDashboard";
+import { VendorCoupons } from "./pages/vendor/VendorCoupons";
+import { VendorCreateCoupon } from "./pages/vendor/VendorCreateCoupon";
+import { VendorWallet } from "./pages/vendor/VendorWallet";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 const App = () => {
@@ -83,6 +92,10 @@ const App = () => {
               <Route path="/certificates" element={<Certificates />} />
               <Route path="/carbon" element={<CarbonOffset />} />
               <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/marketplace/my-coupons" element={<MyCoupons />} />
+              <Route path="/marketplace/purchase-success" element={<PurchaseSuccess />} />
+              <Route path="/marketplace/:id/purchase" element={<Navigate to="/marketplace" replace />} />
+              <Route path="/marketplace/:id" element={<Navigate to="/marketplace" replace />} />
               <Route path="/predict" element={<Predict />} />
             </Route>
           </Route>
@@ -98,6 +111,9 @@ const App = () => {
               <Route path="energy-requests" element={<EnergyRequests />} />
               <Route path="rewards" element={<AdminRewardTransactions />} />
               <Route path="certificates" element={<AdminCertificates />} />
+              <Route path="predictions" element={<AdminPredictions />} />
+              <Route path="marketplace" element={<AdminMarketplace />} />
+              <Route path="withdrawals" element={<AdminWithdrawals />} />
             </Route>
           </Route>
           {}
@@ -110,9 +126,13 @@ const App = () => {
             <Route path="company-onboarding" element={<VendorCompanyOnboarding />} />
             <Route element={<VendorLayout />}>
               <Route path="dashboard" element={<VendorDashboard />} />
+              <Route path="wallet" element={<VendorWallet />} />
               <Route path="installations" element={<VendorInstallations />} />
               <Route path="usage-import" element={<VendorUsageImport />} />
               <Route path="profile" element={<VendorProfile />} />
+              <Route path="marketplace" element={<VendorMarketplaceDashboard />} />
+              <Route path="marketplace/coupons/create" element={<VendorCreateCoupon />} />
+              <Route path="marketplace/coupons" element={<VendorCoupons />} />
             </Route>
           </Route>
           {}

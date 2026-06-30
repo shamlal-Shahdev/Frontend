@@ -4,6 +4,7 @@ import { kycApi } from '@/api/kyc.api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { CheckCircle, XCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
+import { BackButton } from '@/components/common/BackButton';
 export const KYCStatus = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -32,13 +33,15 @@ export const KYCStatus = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+        <BackButton to="/dashboard" className="absolute top-4 left-4" />
         <div className="text-lg">Loading...</div>
       </div>
     );
   }
   if (status === 'none' || status === 'pending') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 relative">
+        <BackButton to="/dashboard" className="absolute top-4 left-4" />
         <Card className="w-full max-w-2xl">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -67,7 +70,8 @@ export const KYCStatus = () => {
   }
   if (status === 'in_review') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 relative">
+        <BackButton to="/dashboard" className="absolute top-4 left-4" />
         <Card className="w-full max-w-2xl">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -101,7 +105,8 @@ export const KYCStatus = () => {
   }
   if (status === 'rejected' || status === 'additional_docs_required') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 relative">
+        <BackButton to="/dashboard" className="absolute top-4 left-4" />
         <Card className="w-full max-w-2xl border-2 border-red-200">
           <CardHeader className="bg-red-50">
             <div className="flex items-center gap-3">

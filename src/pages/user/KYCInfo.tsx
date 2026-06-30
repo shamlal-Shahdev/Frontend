@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowRight, MapPin, AlertCircle } from 'lucide-react';
+import { BackButton } from '@/components/common/BackButton';
 export const KYCInfo = () => {
   const navigate = useNavigate();
   const [error, setError] = useState('');
@@ -34,7 +35,7 @@ export const KYCInfo = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8">
       <div className="max-w-3xl mx-auto">
-        {}
+        <BackButton to="/dashboard" className="mb-4" />
         <div className="mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="flex items-center gap-2">

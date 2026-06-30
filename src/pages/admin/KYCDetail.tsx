@@ -272,7 +272,9 @@ export const KYCDetail = () => {
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={() => navigate('/admin/kyc')}>Back to KYC Review</Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/admin/kyc')}>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -281,16 +283,6 @@ export const KYCDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="outline"
-            onClick={() => navigate('/admin/kyc')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to KYC Review
-          </Button>
-        </div>
         {userDetails && (
           <Card className="mb-6 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">

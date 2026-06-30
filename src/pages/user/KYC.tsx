@@ -4,6 +4,7 @@ import { kycApi } from '@/api/kyc.api';
 import { authApi } from '@/api/auth.api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BackButton } from '@/components/common/BackButton';
 import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
@@ -289,6 +290,7 @@ export const KYC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8 sm:py-12">
       <div className="max-w-4xl mx-auto">
+        <BackButton to="/kyc/info" className="mb-4" />
         <Card className="shadow-lg border-0">
           <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
             <div className="flex items-center justify-between">

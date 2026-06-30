@@ -24,7 +24,9 @@ export const Wallet = () => {
     setLoading(true);
     setError('');
     try {
-      const data = await walletBalanceApi.getMyBalance();
+      const data = await walletBalanceApi.syncMyBalance().catch(() =>
+        walletBalanceApi.getMyBalance(),
+      );
       setBalance(data);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to load wallet balance';
