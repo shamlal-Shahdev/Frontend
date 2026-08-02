@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { marketplaceApi, VendorMarketplaceStats } from '@/api/marketplace.api';
+import { marketplaceApi, VendorMarketplaceStats, VendorTransaction } from '@/api/marketplace.api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -20,17 +20,22 @@ export const VendorMarketplaceDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [stats, setStats] = useState<VendorMarketplaceStats | null>(null);
+  const [transactions, setTransactions] = useState<VendorTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await marketplaceApi.getVendorStats();
-        setStats(data);
+        const [statsData, txData] = await Promise.all([
+          marketplaceApi.getVendorStats(),
+          marketplaceApi.getVendorTransactions()
+        ]);
+        setStats(statsData);
+        setTransactions(txData);
       } catch (err: unknown) {
         const message =
           (err as { response?: { data?: { message?: string } } })?.response?.data
-            ?.message || 'Failed to load marketplace stats';
+            ?.message || 'Failed to load marketplace data';
         toast({ title: 'Error', description: message, variant: 'destructive' });
       } finally {
         setLoading(false);
@@ -197,6 +202,60 @@ export const VendorMarketplaceDashboard = () => {
                 Manage Coupons
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {transactions.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Token Transactions</h2>
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-gray-50 text-gray-600 border-b">
+                    <tr>
+                      <th className="px-6 py-3 font-medium">Time</th>
+                      <th className="px-6 py-3 font-medium">User</th>
+                      <th className="px-6 py-3 font-medium">Coupon</th>
+                      <th className="px-6 py-3 font-medium">Tokens</th>
+                      <th className="px-6 py-3 font-medium">Tx Hash</th>
+                      <th className="px-6 py-3 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {transactions.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-gray-50/50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {new Date(tx.purchaseDate).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4">{tx.userName}</td>
+                        <td className="px-6 py-4 text-gray-600">{tx.couponTitle}</td>
+                        <td className="px-6 py-4 font-medium text-green-600">
+                          {tx.tokensUsed} WATT
+                        </td>
+                        <td className="px-6 py-4">
+                          {tx.txHash ? (
+                            <a
+                              href={`https://sepolia.etherscan.io/tx/${tx.txHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-orange-600 hover:underline flex items-center gap-1"
+                            >
+                              {tx.txHash.slice(0, 6)}...{tx.txHash.slice(-4)}
+                              <ArrowRight className="w-3 h-3 -rotate-45" />
+                            </a>
+                          ) : (
+                            <span className="text-gray-400">N/A</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 capitalize">{tx.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </div>

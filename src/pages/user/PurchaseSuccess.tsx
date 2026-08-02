@@ -8,6 +8,8 @@ interface PurchaseSuccessState {
   purchaseDate: string;
   expiryDate: string;
   tokensUsed: number;
+  txHash?: string;
+  blockNumber?: number;
 }
 
 function formatDate(dateStr: string): string {
@@ -63,6 +65,19 @@ export const PurchaseSuccess = () => {
               <span className="text-gray-500">Expiry Date</span>
               <span>{formatDate(state.expiryDate)}</span>
             </div>
+            {state.txHash && (
+              <div className="flex justify-between text-sm items-center pt-2 border-t mt-2">
+                <span className="text-gray-500">Blockchain Tx</span>
+                <a
+                  href={`https://sepolia.etherscan.io/tx/${state.txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-orange-600 hover:underline font-medium"
+                >
+                  View on Etherscan ↗
+                </a>
+              </div>
+            )}
           </div>
 
           <Button

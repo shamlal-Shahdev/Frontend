@@ -93,6 +93,16 @@ export interface WithdrawalRequest {
   processedAt?: string | null;
 }
 
+export interface VendorTransaction {
+  id: number;
+  purchaseDate: string;
+  userName: string;
+  couponTitle: string;
+  tokensUsed: number;
+  txHash: string | null;
+  status: string;
+}
+
 export interface AdminMarketplaceStats {
   totalCoupons: number;
   totalVendors: number;
@@ -215,6 +225,11 @@ export const marketplaceApi = {
     status: 'in_progress' | 'approved' | 'rejected',
   ): Promise<WithdrawalRequest> => {
     const response = await api.post(`/admin/withdraw/${id}`, { status });
+    return response.data;
+  },
+
+  getVendorTransactions: async (): Promise<VendorTransaction[]> => {
+    const response = await api.get('/vendor/transactions');
     return response.data;
   },
 };
