@@ -77,6 +77,7 @@ export interface VendorUsageImportRow {
   reasonCode?: string | null;
   installationId?: number | null;
   rewardTransactionId?: number | null;
+  txHash?: string | null;
 }
 export interface VendorUsageImportBatch {
   id: number;

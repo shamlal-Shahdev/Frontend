@@ -214,21 +214,32 @@ export const VendorUsageImport = () => {
                       <th className="py-2 pr-4">Period</th>
                       <th className="py-2 pr-4">File</th>
                       <th className="py-2 pr-4">Status</th>
-                      <th className="py-2">Summary</th>
+                      <th className="py-2 pr-4">Summary</th>
+                      <th className="py-2 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {batches.map((b) => (
-                      <tr key={b.id} className="border-b border-gray-100">
+                      <tr key={b.id} className="border-b border-gray-100 hover:bg-gray-50/50">
                         <td className="py-2 pr-4 font-medium">{b.periodYearMonth}</td>
-                        <td className="py-2 pr-4 max-w-[200px] truncate" title={b.originalFilename}>
+                        <td className="py-2 pr-4 max-w-[180px] truncate" title={b.originalFilename}>
                           {b.originalFilename}
                         </td>
                         <td className="py-2 pr-4">{statusBadge(b.status)}</td>
-                        <td className="py-2 text-gray-600">
+                        <td className="py-2 pr-4 text-gray-600 text-xs">
                           {b.summaryJson
                             ? `${String((b.summaryJson as { acceptedCredited?: number }).acceptedCredited ?? 0)} credited, ${String((b.summaryJson as { rejected?: number }).rejected ?? 0)} rejected`
                             : b.errorMessage || '—'}
+                        </td>
+                        <td className="py-2 text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/vendor/usage-imports/${b.id}`)}
+                            className="text-xs border-green-300 text-green-700 hover:bg-green-50"
+                          >
+                            View Details
+                          </Button>
                         </td>
                       </tr>
                     ))}

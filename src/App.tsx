@@ -51,6 +51,7 @@ import { VendorInstallations } from "./pages/vendor/VendorInstallations";
 import { VendorProfile } from "./pages/vendor/VendorProfile";
 import { VendorEmailVerificationSent } from "./pages/vendor/VendorEmailVerificationSent";
 import { VendorUsageImport } from "./pages/vendor/VendorUsageImport";
+import { VendorUsageImportDetail } from "./pages/vendor/VendorUsageImportDetail";
 import { VendorCompanyOnboarding } from "./pages/vendor/VendorCompanyOnboarding";
 import { VendorMarketplaceDashboard } from "./pages/vendor/VendorMarketplaceDashboard";
 import { VendorCoupons } from "./pages/vendor/VendorCoupons";
@@ -129,6 +130,8 @@ const App = () => {
               <Route path="wallet" element={<VendorWallet />} />
               <Route path="installations" element={<VendorInstallations />} />
               <Route path="usage-import" element={<VendorUsageImport />} />
+              <Route path="usage-imports/:id" element={<VendorUsageImportDetail />} />
+              <Route path="usage-import/:id" element={<VendorUsageImportDetail />} />
               <Route path="profile" element={<VendorProfile />} />
               <Route path="marketplace" element={<VendorMarketplaceDashboard />} />
               <Route path="marketplace/coupons/create" element={<VendorCreateCoupon />} />
