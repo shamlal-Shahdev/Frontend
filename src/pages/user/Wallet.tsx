@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { walletBalanceApi, WalletBalance } from '@/api/wallet-balance.api';
-import { userWalletApi } from '@/api/user-wallet.api';
-import { kycApi } from '@/api/kyc.api';
 import { rewardTransactionApi, RewardTransaction } from '@/api/reward-transaction.api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,29 +9,18 @@ import {
   RefreshCw, 
   Clock,
   Loader2,
-  CheckCircle2,
   AlertCircle,
   Copy,
-  ShieldCheck,
   ExternalLink,
   Gift,
   Zap,
 } from 'lucide-react';
 
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
-
 export const Wallet = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [connecting, setConnecting] = useState(false);
   const [balance, setBalance] = useState<WalletBalance | null>(null);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [kycStatus, setKycStatus] = useState<string>('none');
   const [rewards, setRewards] = useState<RewardTransaction[]>([]);
   const [error, setError] = useState('');
 
@@ -45,16 +32,12 @@ export const Wallet = () => {
     setLoading(true);
     setError('');
     try {
-      const [balanceData, walletData, kycRes, rewardsRes] = await Promise.all([
+      const [balanceData, rewardsRes] = await Promise.all([
         walletBalanceApi.syncMyBalance().catch(() => walletBalanceApi.getMyBalance()),
-        userWalletApi.getMyWallet().catch(() => ({ address: null })),
-        kycApi.getStatus().catch(() => ({ status: 'none' as const })),
         rewardTransactionApi.getMyRewards(1, 50).catch(() => ({ data: [] })),
       ]);
 
       setBalance(balanceData);
-      setWalletAddress(walletData.address);
-      setKycStatus(kycRes.status);
       setRewards(rewardsRes.data || []);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Failed to load wallet balance';
@@ -66,51 +49,6 @@ export const Wallet = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleConnectMetaMask = async () => {
-    if (typeof window.ethereum === 'undefined') {
-      toast({
-        title: 'MetaMask Not Detected',
-        description: 'Please install the MetaMask browser extension to connect your wallet.',
-        variant: 'destructive',
-      });
-      window.open('https://metamask.io/download/', '_blank');
-      return;
-    }
-
-    setConnecting(true);
-    try {
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-      });
-
-      if (!accounts || accounts.length === 0) {
-        throw new Error('No Ethereum account selected in MetaMask');
-      }
-
-      const connectedAddress = accounts[0];
-      await userWalletApi.connectWallet(connectedAddress);
-
-      setWalletAddress(connectedAddress);
-      toast({
-        title: 'MetaMask Connected Successfully! 🎉',
-        description: `Wallet ${connectedAddress.substring(0, 6)}...${connectedAddress.substring(connectedAddress.length - 4)} linked to your account.`,
-      });
-
-      // Refresh wallet balance
-      const balanceData = await walletBalanceApi.syncMyBalance().catch(() => walletBalanceApi.getMyBalance());
-      setBalance(balanceData);
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Failed to connect MetaMask wallet';
-      toast({
-        title: 'Wallet Connection Failed',
-        description: msg,
-        variant: 'destructive',
-      });
-    } finally {
-      setConnecting(false);
     }
   };
 
@@ -176,15 +114,13 @@ export const Wallet = () => {
     );
   }
 
-  const isKycApproved = kycStatus.toLowerCase() === 'approved';
-
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">My Wallet</h1>
-          <p className="text-gray-500 mt-1">View your blockchain rewards, connect MetaMask, and manage WATT tokens</p>
+          <p className="text-gray-500 mt-1">View your blockchain rewards and manage WATT tokens</p>
         </div>
 
         {error && !balance && (
@@ -195,101 +131,6 @@ export const Wallet = () => {
                 <div>
                   <p className="font-semibold text-red-900">Error loading wallet</p>
                   <p className="text-sm text-red-700 mt-1">{error}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* MetaMask Connection Box */}
-        {!walletAddress ? (
-          <Card className="border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100 shadow-md">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-400 flex items-center justify-center shrink-0">
-                    <img 
-                      src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" 
-                      alt="MetaMask Logo" 
-                      className="w-10 h-10 object-contain"
-                    />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xl font-bold text-gray-900">Connect MetaMask Wallet</h3>
-                      {isKycApproved ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
-                          <ShieldCheck className="w-3.5 h-3.5" /> KYC Approved
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full">
-                          KYC Status: {kycStatus.toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {isKycApproved 
-                        ? 'Connect your MetaMask public wallet address to receive monthly WATT reward tokens directly to your blockchain wallet.'
-                        : 'Your KYC approval is required to link your MetaMask wallet and receive monthly energy rewards.'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="shrink-0 w-full md:w-auto">
-                  <Button
-                    onClick={handleConnectMetaMask}
-                    disabled={connecting || !isKycApproved}
-                    className="w-full md:w-auto bg-amber-600 hover:bg-amber-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
-                  >
-                    {connecting ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Connecting MetaMask...
-                      </>
-                    ) : (
-                      <>
-                        <img 
-                          src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" 
-                          alt="MetaMask" 
-                          className="w-5 h-5"
-                        />
-                        Connect MetaMask Wallet
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="border border-emerald-200 bg-emerald-50/50">
-            <CardContent className="py-4">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">
-                    <CheckCircle2 className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Connected MetaMask Address</span>
-                      <span className="inline-flex items-center gap-1 text-[11px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded-full font-medium">
-                        On-Chain Linked
-                      </span>
-                    </div>
-                    <p className="font-mono text-sm text-gray-900 font-semibold break-all">{walletAddress}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyToClipboard(walletAddress)}
-                    className="flex items-center gap-1.5 text-xs border-emerald-300 hover:bg-emerald-100"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    Copy Address
-                  </Button>
                 </div>
               </div>
             </CardContent>

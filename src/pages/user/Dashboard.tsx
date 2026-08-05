@@ -2,8 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { dashboardApi } from '@/api/dashboard.api';
-import { kycApi } from '@/api/kyc.api';
-import { userWalletApi } from '@/api/user-wallet.api';
 import type { DashboardData } from '@/types/api.types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +18,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart';
-import { Zap, TrendingUp, Award, CloudRain, Activity, Clock, Loader2, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Zap, TrendingUp, Award, CloudRain, Activity, Clock, Loader2 } from 'lucide-react';
 
 const TREND_MONTH_OPTIONS = [
   { value: '3', label: 'Last 3 months' },
@@ -43,8 +41,6 @@ export const Dashboard = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [trendMonths, setTrendMonths] = useState(6);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const [userWalletAddress, setUserWalletAddress] = useState<string | null>(null);
-  const [kycStatus, setKycStatus] = useState<string>('none');
 
   const formatNumber = (value?: number, decimals = 2) => {
     const safeValue = Number.isFinite(value) ? Number(value) : 0;
@@ -59,19 +55,13 @@ export const Dashboard = () => {
       setError(null);
     }
     try {
-      const [response, walletInfo, kycInfo] = await Promise.all([
-        dashboardApi.getUserDashboard(months),
-        userWalletApi.getMyWallet().catch(() => ({ address: null })),
-        kycApi.getStatus().catch(() => ({ status: 'none' as const })),
-      ]);
+      const response = await dashboardApi.getUserDashboard(months);
 
       setData((prev) =>
         trendOnly && prev
           ? { ...prev, energyGenerationTrend: response.energyGenerationTrend }
           : response,
       );
-      setUserWalletAddress(walletInfo.address);
-      setKycStatus(kycInfo.status);
     } catch (err: unknown) {
       console.error('Failed to load dashboard:', err);
       if (!trendOnly) {
@@ -135,42 +125,6 @@ export const Dashboard = () => {
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-500 mt-1">Welcome back! Here&apos;s your renewable energy overview.</p>
       </div>
-
-      {/* MetaMask Connection Banner if KYC Approved & Wallet Not Connected */}
-      {kycStatus.toLowerCase() === 'approved' && !userWalletAddress && (
-        <Card className="mb-8 border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100 shadow-md">
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-400 flex items-center justify-center shrink-0">
-                  <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" 
-                    alt="MetaMask" 
-                    className="w-8 h-8 object-contain"
-                  />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-gray-900">Action Required: Connect MetaMask Wallet</h3>
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                      <ShieldCheck className="w-3.5 h-3.5" /> KYC Approved
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-0.5">
-                    Your KYC is approved! Connect your MetaMask wallet to receive monthly WATT reward tokens directly to your blockchain wallet.
-                  </p>
-                </div>
-              </div>
-              <Button
-                onClick={() => navigate('/user/wallet')}
-                className="bg-amber-600 hover:bg-amber-700 text-white font-semibold shrink-0 gap-2 shadow"
-              >
-                Connect Wallet <ArrowRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
