@@ -198,7 +198,7 @@ export const Wallet = () => {
           </CardContent>
         </Card>
 
-        {/* Monthly Reward Distribution History */}
+        Monthly Reward Distribution History
         <Card className="border shadow-sm">
           <CardHeader className="border-b bg-gray-50/50 py-4">
             <div className="flex items-center justify-between">
